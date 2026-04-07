@@ -18,14 +18,14 @@ h1 { text-align: center; }
 .card {
     background: #1e293b;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 20px;
 }
 
 input, select, button {
     padding: 10px;
     margin: 5px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
 }
 
@@ -35,19 +35,15 @@ button {
     cursor: pointer;
 }
 
-button:hover { background: #16a34a; }
+.delete {
+    background: red;
+}
 
 .item {
     display: flex;
     justify-content: space-between;
     border-bottom: 1px solid #334155;
-    padding: 5px 0;
-}
-
-.delete {
-    background: red;
-    padding: 5px 10px;
-    cursor: pointer;
+    padding: 8px 0;
 }
 </style>
 </head>
@@ -57,12 +53,11 @@ button:hover { background: #16a34a; }
 <h1>💰 App Financeiro</h1>
 
 <div class="card">
-    <h2>Total: R$ <span id="total">0</span></h2>
+    <h2>Total mês: R$ <span id="total">0</span></h2>
 </div>
 
 <div class="card">
     <input id="desc" placeholder="Descrição">
-    <input id="cat" placeholder="Categoria">
     
     <select id="cartao">
         <option>Nubank</option>
@@ -74,7 +69,11 @@ button:hover { background: #16a34a; }
 </div>
 
 <div class="card">
-    <canvas id="grafico"></canvas>
+    <canvas id="graficoCategoria"></canvas>
+</div>
+
+<div class="card">
+    <canvas id="graficoMes"></canvas>
 </div>
 
 <div class="card">
@@ -86,56 +85,86 @@ button:hover { background: #16a34a; }
 
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
 
+function detectarCategoria(desc) {
+    desc = desc.toLowerCase();
+
+    if (desc.includes("uber")) return "Transporte";
+    if (desc.includes("mercado") || desc.includes("padaria")) return "Alimentação";
+    if (desc.includes("spotify")) return "Assinatura";
+    if (desc.includes("posto")) return "Transporte";
+
+    return "Outros";
+}
+
 function add() {
     let desc = document.getElementById("desc").value;
-    let cat = document.getElementById("cat").value;
     let cartao = document.getElementById("cartao").value;
     let val = parseFloat(document.getElementById("val").value);
 
     if (!desc || !val) return;
 
-    dados.push({desc, cat, cartao, val});
+    let data = new Date();
+    let mes = data.getMonth() + 1;
+
+    let categoria = detectarCategoria(desc);
+
+    dados.push({desc, cartao, val, mes, categoria});
 
     document.getElementById("desc").value = "";
-    document.getElementById("cat").value = "";
     document.getElementById("val").value = "";
 
     atualizar();
 }
 
-function remover(index) {
-    dados.splice(index, 1);
+function remover(i) {
+    dados.splice(i,1);
     atualizar();
 }
 
 function atualizar() {
-    let total = dados.reduce((a,b)=>a+b.val,0);
+
+    let mesAtual = new Date().getMonth() + 1;
+
+    let dadosMes = dados.filter(d => d.mes === mesAtual);
+
+    let total = dadosMes.reduce((a,b)=>a+b.val,0);
     document.getElementById("total").innerText = total.toFixed(2);
 
     let lista = document.getElementById("lista");
-    lista.innerHTML = dados.map((d,i)=>`
+    lista.innerHTML = dadosMes.map((d,i)=>`
         <div class="item">
             <span>${d.desc} (${d.cartao}) - R$ ${d.val.toFixed(2)}</span>
             <button class="delete" onclick="remover(${i})">X</button>
         </div>
     `).join("");
 
-    let categorias = {};
-    dados.forEach(d=>{
-        categorias[d.cat] = (categorias[d.cat]||0) + d.val;
+    // gráfico categoria
+    let cat = {};
+    dadosMes.forEach(d=>{
+        cat[d.categoria] = (cat[d.categoria]||0) + d.val;
     });
 
-    let labels = Object.keys(categorias);
-    let valores = Object.values(categorias);
-
-    if(window.chart) window.chart.destroy();
-
-    let ctx = document.getElementById("grafico");
-    window.chart = new Chart(ctx, {
+    if(window.g1) window.g1.destroy();
+    window.g1 = new Chart(document.getElementById("graficoCategoria"), {
         type: 'pie',
         data: {
-            labels: labels,
-            datasets: [{ data: valores }]
+            labels: Object.keys(cat),
+            datasets: [{ data: Object.values(cat) }]
+        }
+    });
+
+    // gráfico mês (histórico)
+    let meses = {};
+    dados.forEach(d=>{
+        meses[d.mes] = (meses[d.mes]||0) + d.val;
+    });
+
+    if(window.g2) window.g2.destroy();
+    window.g2 = new Chart(document.getElementById("graficoMes"), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(meses),
+            datasets: [{ data: Object.values(meses) }]
         }
     });
 
