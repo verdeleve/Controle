@@ -13,9 +13,7 @@ body {
     padding: 20px;
 }
 
-h1 {
-    text-align: center;
-}
+h1 { text-align: center; }
 
 .card {
     background: #1e293b;
@@ -24,7 +22,7 @@ h1 {
     margin-bottom: 20px;
 }
 
-input, button {
+input, select, button {
     padding: 10px;
     margin: 5px;
     border-radius: 8px;
@@ -37,9 +35,19 @@ button {
     cursor: pointer;
 }
 
-#lista p {
+button:hover { background: #16a34a; }
+
+.item {
+    display: flex;
+    justify-content: space-between;
     border-bottom: 1px solid #334155;
     padding: 5px 0;
+}
+
+.delete {
+    background: red;
+    padding: 5px 10px;
+    cursor: pointer;
 }
 </style>
 </head>
@@ -55,6 +63,12 @@ button {
 <div class="card">
     <input id="desc" placeholder="Descrição">
     <input id="cat" placeholder="Categoria">
+    
+    <select id="cartao">
+        <option>Nubank</option>
+        <option>Ourocard</option>
+    </select>
+
     <input id="val" type="number" placeholder="Valor">
     <button onclick="add()">Adicionar</button>
 </div>
@@ -75,11 +89,12 @@ let dados = JSON.parse(localStorage.getItem("dados")) || [];
 function add() {
     let desc = document.getElementById("desc").value;
     let cat = document.getElementById("cat").value;
+    let cartao = document.getElementById("cartao").value;
     let val = parseFloat(document.getElementById("val").value);
 
     if (!desc || !val) return;
 
-    dados.push({desc, cat, val});
+    dados.push({desc, cat, cartao, val});
 
     document.getElementById("desc").value = "";
     document.getElementById("cat").value = "";
@@ -88,12 +103,22 @@ function add() {
     atualizar();
 }
 
+function remover(index) {
+    dados.splice(index, 1);
+    atualizar();
+}
+
 function atualizar() {
     let total = dados.reduce((a,b)=>a+b.val,0);
     document.getElementById("total").innerText = total.toFixed(2);
 
     let lista = document.getElementById("lista");
-    lista.innerHTML = dados.map(d=>`<p>${d.desc} - R$ ${d.val.toFixed(2)}</p>`).join("");
+    lista.innerHTML = dados.map((d,i)=>`
+        <div class="item">
+            <span>${d.desc} (${d.cartao}) - R$ ${d.val.toFixed(2)}</span>
+            <button class="delete" onclick="remover(${i})">X</button>
+        </div>
+    `).join("");
 
     let categorias = {};
     dados.forEach(d=>{
@@ -110,9 +135,7 @@ function atualizar() {
         type: 'pie',
         data: {
             labels: labels,
-            datasets: [{
-                data: valores
-            }]
+            datasets: [{ data: valores }]
         }
     });
 
