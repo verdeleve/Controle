@@ -39,6 +39,10 @@ button {
     background: red;
 }
 
+.edit {
+    background: orange;
+}
+
 .item {
     display: flex;
     justify-content: space-between;
@@ -58,14 +62,29 @@ button {
 
 <div class="card">
     <input id="desc" placeholder="Descrição">
-    
+
+    <select id="categoria">
+        <option value="">Selecionar categoria</option>
+        <option>Alimentação</option>
+        <option>Combustível</option>
+        <option>Transporte</option>
+        <option>Compras</option>
+        <option>Assinatura</option>
+        <option>Saúde</option>
+        <option>Casa</option>
+        <option>Outros</option>
+    </select>
+
     <select id="cartao">
         <option>Nubank</option>
         <option>Ourocard</option>
+        <option>Pix</option>
+        <option>Dinheiro</option>
     </select>
 
     <input id="val" type="number" placeholder="Valor">
-    <button onclick="add()">Adicionar</button>
+
+    <button onclick="add()" id="btnAdd">Adicionar</button>
 </div>
 
 <div class="card">
@@ -84,53 +103,42 @@ button {
 <script>
 
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
-
-// 🧠 CATEGORIZAÇÃO INTELIGENTE
-function detectarCategoria(desc) {
-    desc = desc.toLowerCase();
-
-    if (desc.includes("mercado") || desc.includes("padaria") || desc.includes("supermercado") || desc.includes("restaurante") || desc.includes("ifood") || desc.includes("lanche"))
-        return "Alimentação";
-
-    if (desc.includes("posto") || desc.includes("ipiranga") || desc.includes("shell") || desc.includes("petrobras") || desc.includes("combustivel"))
-        return "Combustível";
-
-    if (desc.includes("uber") || desc.includes("99") || desc.includes("taxi") || desc.includes("metro") || desc.includes("onibus"))
-        return "Transporte";
-
-    if (desc.includes("mercadolivre") || desc.includes("amazon") || desc.includes("shopee") || desc.includes("magazine"))
-        return "Compras";
-
-    if (desc.includes("spotify") || desc.includes("netflix") || desc.includes("prime") || desc.includes("youtube"))
-        return "Assinatura";
-
-    if (desc.includes("farmacia") || desc.includes("drogaria") || desc.includes("hospital"))
-        return "Saúde";
-
-    if (desc.includes("luz") || desc.includes("agua") || desc.includes("energia") || desc.includes("gas"))
-        return "Casa";
-
-    return "Outros";
-}
+let editIndex = null;
 
 function add() {
     let desc = document.getElementById("desc").value;
+    let categoria = document.getElementById("categoria").value;
     let cartao = document.getElementById("cartao").value;
     let val = parseFloat(document.getElementById("val").value);
 
     if (!desc || !val) return;
 
-    let data = new Date();
-    let mes = data.getMonth() + 1;
+    let mes = new Date().getMonth() + 1;
 
-    let categoria = detectarCategoria(desc);
+    if (editIndex !== null) {
+        // ✏️ EDITANDO
+        dados[editIndex] = {desc, categoria, cartao, val, mes};
+        editIndex = null;
+        document.getElementById("btnAdd").innerText = "Adicionar";
+    } else {
+        // ➕ NOVO
+        dados.push({desc, categoria, cartao, val, mes});
+    }
 
-    dados.push({desc, cartao, val, mes, categoria});
-
-    document.getElementById("desc").value = "";
-    document.getElementById("val").value = "";
-
+    limpar();
     atualizar();
+}
+
+function editar(i) {
+    let d = dados[i];
+
+    document.getElementById("desc").value = d.desc;
+    document.getElementById("categoria").value = d.categoria;
+    document.getElementById("cartao").value = d.cartao;
+    document.getElementById("val").value = d.val;
+
+    editIndex = i;
+    document.getElementById("btnAdd").innerText = "Salvar";
 }
 
 function remover(i) {
@@ -138,10 +146,15 @@ function remover(i) {
     atualizar();
 }
 
+function limpar() {
+    document.getElementById("desc").value = "";
+    document.getElementById("categoria").value = "";
+    document.getElementById("val").value = "";
+}
+
 function atualizar() {
 
     let mesAtual = new Date().getMonth() + 1;
-
     let dadosMes = dados.filter(d => d.mes === mesAtual);
 
     let total = dadosMes.reduce((a,b)=>a+b.val,0);
@@ -151,11 +164,13 @@ function atualizar() {
     lista.innerHTML = dadosMes.map((d,i)=>`
         <div class="item">
             <span>${d.desc} (${d.cartao}) - R$ ${d.val.toFixed(2)} | ${d.categoria}</span>
-            <button class="delete" onclick="remover(${i})">X</button>
+            <div>
+                <button class="edit" onclick="editar(${i})">✏️</button>
+                <button class="delete" onclick="remover(${i})">X</button>
+            </div>
         </div>
     `).join("");
 
-    // 📊 gráfico categoria
     let cat = {};
     dadosMes.forEach(d=>{
         cat[d.categoria] = (cat[d.categoria]||0) + d.val;
@@ -170,7 +185,6 @@ function atualizar() {
         }
     });
 
-    // 📈 gráfico mensal
     let meses = {};
     dados.forEach(d=>{
         meses[d.mes] = (meses[d.mes]||0) + d.val;
