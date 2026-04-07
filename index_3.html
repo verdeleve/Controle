@@ -52,7 +52,7 @@ button {
 <div class="card" id="lista"></div>
 
 <script>
-let dados = [];
+let dados = JSON.parse(localStorage.getItem("dados")) || [];
 
 function add() {
     let desc = document.getElementById("desc").value;
