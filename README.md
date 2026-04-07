@@ -96,6 +96,7 @@ button {
         <option>Débito</option>
         <option>VR</option>
         <option>Pix/option>
+        
     </select>
 
     <input id="val" type="number" placeholder="Valor">
