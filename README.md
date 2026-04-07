@@ -37,10 +37,6 @@ button {
     cursor: pointer;
 }
 
-button:hover {
-    background: #16a34a;
-}
-
 #lista p {
     border-bottom: 1px solid #334155;
     padding: 5px 0;
