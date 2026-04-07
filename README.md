@@ -2,12 +2,9 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>App Financeiro</title>
+<title>App Financeiro PRO</title>
 
-<!-- Chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- PDF Reader -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
@@ -40,8 +37,17 @@ button {
     cursor: pointer;
 }
 
-.delete { background: red; }
-.edit { background: orange; }
+.grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #334155;
+}
 
 .item {
     display: flex;
@@ -49,22 +55,30 @@ button {
     border-bottom: 1px solid #334155;
     padding: 8px 0;
 }
+
+.delete { background: red; }
+.edit { background: orange; }
 </style>
 </head>
 
 <body>
 
-<h1>💰 App Financeiro</h1>
+<h1>💰 App Financeiro PRO</h1>
 
 <div class="card">
     <h2>Total mês: R$ <span id="total">0</span></h2>
 </div>
 
 <div class="card">
+    <h3>💳 Por forma de pagamento</h3>
+    <div id="cards" class="grid"></div>
+</div>
+
+<div class="card">
     <input id="desc" placeholder="Descrição">
 
     <select id="categoria">
-        <option value="">Selecionar categoria</option>
+        <option value="">Categoria</option>
         <option>Alimentação</option>
         <option>Combustível</option>
         <option>Transporte</option>
@@ -75,11 +89,12 @@ button {
         <option>Outros</option>
     </select>
 
+    <!-- 💳 NOVAS OPÇÕES -->
     <select id="cartao">
         <option>Nubank</option>
         <option>Ourocard</option>
-        <option>Pix</option>
-        <option>Dinheiro</option>
+        <option>Débito</option>
+        <option>VR</option>
     </select>
 
     <input id="val" type="number" placeholder="Valor">
@@ -87,18 +102,13 @@ button {
     <button onclick="add()" id="btnAdd">Adicionar</button>
 </div>
 
-<!-- IMPORTAR PDF -->
 <div class="card">
     <h3>📂 Importar fatura (PDF)</h3>
     <input type="file" id="pdfInput">
 </div>
 
 <div class="card">
-    <canvas id="graficoCategoria"></canvas>
-</div>
-
-<div class="card">
-    <canvas id="graficoMes"></canvas>
+    <canvas id="grafico"></canvas>
 </div>
 
 <div class="card">
@@ -111,7 +121,7 @@ button {
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
 let editIndex = null;
 
-// 🧠 CATEGORIA AUTOMÁTICA (fallback)
+// 🧠 Categoria automática
 function detectarCategoria(desc) {
     desc = desc.toLowerCase();
 
@@ -127,154 +137,171 @@ function detectarCategoria(desc) {
     return "Outros";
 }
 
-// 💳 DETECTAR CARTÃO
+// 💳 Detectar cartão automático (PDF)
 function detectarCartao(linha) {
-    if (linha.includes("••••")) return "Nubank";
+    let final = linha.match(/(\d{4})/);
+
+    if (linha.includes("••••") && final)
+        return "Nubank " + final[1];
+
     return "Ourocard";
 }
 
-// ➕ ADICIONAR / EDITAR
+// ➕ Adicionar / editar
 function add() {
-    let desc = document.getElementById("desc").value;
-    let categoria = document.getElementById("categoria").value;
-    let cartao = document.getElementById("cartao").value;
-    let val = parseFloat(document.getElementById("val").value);
+
+    let desc = descEl.value;
+    let categoria = catEl.value || detectarCategoria(desc);
+    let cartao = cartaoEl.value;
+    let val = parseFloat(valEl.value);
 
     if (!desc || !val) return;
 
-    let mes = new Date().getMonth() + 1;
-
-    if (!categoria) categoria = detectarCategoria(desc);
+    let hoje = new Date();
 
     if (editIndex !== null) {
-        dados[editIndex] = {desc, categoria, cartao, val, mes};
+        dados[editIndex] = {
+            desc, categoria, cartao, val,
+            dia: hoje.getDate(),
+            mes: hoje.getMonth()+1
+        };
         editIndex = null;
-        document.getElementById("btnAdd").innerText = "Adicionar";
+        btnAdd.innerText = "Adicionar";
     } else {
-        dados.push({desc, categoria, cartao, val, mes});
+        dados.push({
+            desc, categoria, cartao, val,
+            dia: hoje.getDate(),
+            mes: hoje.getMonth()+1
+        });
     }
 
     limpar();
     atualizar();
 }
 
-// ✏️ EDITAR
+// ✏️ Editar
 function editar(i) {
     let d = dados[i];
 
-    document.getElementById("desc").value = d.desc;
-    document.getElementById("categoria").value = d.categoria;
-    document.getElementById("cartao").value = d.cartao;
-    document.getElementById("val").value = d.val;
+    descEl.value = d.desc;
+    catEl.value = d.categoria;
+    cartaoEl.value = d.cartao;
+    valEl.value = d.val;
 
     editIndex = i;
-    document.getElementById("btnAdd").innerText = "Salvar";
+    btnAdd.innerText = "Salvar";
 }
 
-// 🗑️ REMOVER
+// 🗑️ Remover
 function remover(i) {
     dados.splice(i,1);
     atualizar();
 }
 
-// 🧹 LIMPAR
+// 🧹 Limpar
 function limpar() {
-    document.getElementById("desc").value = "";
-    document.getElementById("categoria").value = "";
-    document.getElementById("val").value = "";
+    descEl.value = "";
+    catEl.value = "";
+    valEl.value = "";
 }
 
-// 📂 IMPORTAR PDF
-document.getElementById('pdfInput').addEventListener('change', async function(e) {
+// 📂 Importar PDF
+pdfInput.addEventListener('change', async function(e) {
+
     const file = e.target.files[0];
     const reader = new FileReader();
 
     reader.onload = async function() {
-        const typedarray = new Uint8Array(this.result);
-        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+
+        const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
 
         for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
 
-            const text = content.items.map(item => item.str).join(" ");
-            processarTexto(text);
+            let page = await pdf.getPage(i);
+            let content = await page.getTextContent();
+            let text = content.items.map(i => i.str).join(" ");
+
+            processar(text);
         }
     };
 
     reader.readAsArrayBuffer(file);
 });
 
-// 🧠 PROCESSAR TEXTO DO PDF
-function processarTexto(texto) {
+// 🧠 Processar PDF
+function processar(texto) {
 
     let linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
 
     linhas.forEach(linha => {
 
-        let ouro = linha.match(/(\d{2})\/(\d{2}).*?R\$ ?([\d,]+)/);
-        let nubank = linha.match(/(\d{1,2}) [A-Z]{3}.*?R\$ ?([\d,]+)/);
+        let data = linha.match(/(\d{2})\/(\d{2})/);
+        let nubank = linha.match(/(\d{1,2}) [A-Z]{3}/);
 
-        let valor = 0;
-        let desc = "";
+        let valorMatch = linha.match(/R\$ ?([\d,]+)/);
+        if (!valorMatch) return;
 
-        if (ouro) {
-            valor = parseFloat(ouro[3].replace(",", "."));
-            desc = linha.replace(/R\$.*$/, "").trim();
+        let valor = parseFloat(valorMatch[1].replace(",", "."));
+
+        let desc = linha
+            .replace(/R\$.*$/, "")
+            .replace(/- Parcela.*$/, "")
+            .replace(/.*\d{4}/, "")
+            .trim();
+
+        let dia = 1;
+        let mes = new Date().getMonth()+1;
+
+        if (data) {
+            dia = parseInt(data[1]);
+            mes = parseInt(data[2]);
         }
 
         if (nubank) {
-            valor = parseFloat(nubank[2].replace(",", "."));
-            desc = linha
-                .replace(/.*\d{4}/, "")
-                .replace(/- Parcela.*$/, "")
-                .replace(/R\$.*$/, "")
-                .trim();
+            dia = parseInt(nubank[1]);
         }
 
-        if (valor > 0) {
-            dados.push({
-                desc: desc,
-                categoria: detectarCategoria(desc),
-                cartao: detectarCartao(linha),
-                val: valor,
-                mes: new Date().getMonth() + 1
-            });
-        }
+        dados.push({
+            desc,
+            categoria: detectarCategoria(desc),
+            cartao: detectarCartao(linha),
+            val: valor,
+            dia,
+            mes
+        });
 
     });
 
     atualizar();
 }
 
-// 🔄 ATUALIZAR TELA
+// 🔄 Atualizar
 function atualizar() {
 
-    let mesAtual = new Date().getMonth() + 1;
+    let mesAtual = new Date().getMonth()+1;
     let dadosMes = dados.filter(d => d.mes === mesAtual);
 
     let total = dadosMes.reduce((a,b)=>a+b.val,0);
-    document.getElementById("total").innerText = total.toFixed(2);
+    totalEl.innerText = total.toFixed(2);
 
-    let lista = document.getElementById("lista");
-    lista.innerHTML = dadosMes.map((d,i)=>`
-        <div class="item">
-            <span>${d.desc} (${d.cartao}) - R$ ${d.val.toFixed(2)} | ${d.categoria}</span>
-            <div>
-                <button class="edit" onclick="editar(${i})">✏️</button>
-                <button class="delete" onclick="remover(${i})">X</button>
-            </div>
-        </div>
-    `).join("");
-
-    // gráfico categoria
-    let cat = {};
+    // 💳 agrupado
+    let cartoes = {};
     dadosMes.forEach(d=>{
-        cat[d.categoria] = (cat[d.categoria]||0) + d.val;
+        cartoes[d.cartao] = (cartoes[d.cartao]||0)+d.val;
     });
 
-    if(window.g1) window.g1.destroy();
-    window.g1 = new Chart(document.getElementById("graficoCategoria"), {
+    cards.innerHTML = Object.entries(cartoes).map(([k,v]) =>
+        `<div class="badge">${k}: R$ ${v.toFixed(2)}</div>`
+    ).join("");
+
+    // 📊 gráfico
+    let cat = {};
+    dadosMes.forEach(d=>{
+        cat[d.categoria] = (cat[d.categoria]||0)+d.val;
+    });
+
+    if(window.g) window.g.destroy();
+    window.g = new Chart(grafico, {
         type: 'pie',
         data: {
             labels: Object.keys(cat),
@@ -282,25 +309,32 @@ function atualizar() {
         }
     });
 
-    // gráfico mês
-    let meses = {};
-    dados.forEach(d=>{
-        meses[d.mes] = (meses[d.mes]||0) + d.val;
-    });
-
-    if(window.g2) window.g2.destroy();
-    window.g2 = new Chart(document.getElementById("graficoMes"), {
-        type: 'bar',
-        data: {
-            labels: Object.keys(meses),
-            datasets: [{ data: Object.values(meses) }]
-        }
-    });
+    // 📋 lista
+    lista.innerHTML = dadosMes.map((d,i)=>`
+        <div class="item">
+            <span>${d.dia}/${d.mes} - ${d.desc} (${d.cartao}) - R$ ${d.val.toFixed(2)}</span>
+            <div>
+                <button class="edit" onclick="editar(${i})">✏️</button>
+                <button class="delete" onclick="remover(${i})">X</button>
+            </div>
+        </div>
+    `).join("");
 
     localStorage.setItem("dados", JSON.stringify(dados));
 }
 
 atualizar();
+
+// DOM
+const descEl = document.getElementById("desc");
+const catEl = document.getElementById("categoria");
+const cartaoEl = document.getElementById("cartao");
+const valEl = document.getElementById("val");
+const totalEl = document.getElementById("total");
+const cards = document.getElementById("cards");
+const pdfInput = document.getElementById("pdfInput");
+const lista = document.getElementById("lista");
+const btnAdd = document.getElementById("btnAdd");
 
 </script>
 
