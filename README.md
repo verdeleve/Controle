@@ -77,7 +77,7 @@ button {
 </div>
 
 <div class="card">
-    <h3>📋 Gastos</h3>
+    <h3>📋 Gastos do mês</h3>
     <div id="lista"></div>
 </div>
 
@@ -85,13 +85,30 @@ button {
 
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
 
+// 🧠 CATEGORIZAÇÃO INTELIGENTE
 function detectarCategoria(desc) {
     desc = desc.toLowerCase();
 
-    if (desc.includes("uber")) return "Transporte";
-    if (desc.includes("mercado") || desc.includes("padaria")) return "Alimentação";
-    if (desc.includes("spotify")) return "Assinatura";
-    if (desc.includes("posto")) return "Transporte";
+    if (desc.includes("mercado") || desc.includes("padaria") || desc.includes("supermercado") || desc.includes("restaurante") || desc.includes("ifood") || desc.includes("lanche"))
+        return "Alimentação";
+
+    if (desc.includes("posto") || desc.includes("ipiranga") || desc.includes("shell") || desc.includes("petrobras") || desc.includes("combustivel"))
+        return "Combustível";
+
+    if (desc.includes("uber") || desc.includes("99") || desc.includes("taxi") || desc.includes("metro") || desc.includes("onibus"))
+        return "Transporte";
+
+    if (desc.includes("mercadolivre") || desc.includes("amazon") || desc.includes("shopee") || desc.includes("magazine"))
+        return "Compras";
+
+    if (desc.includes("spotify") || desc.includes("netflix") || desc.includes("prime") || desc.includes("youtube"))
+        return "Assinatura";
+
+    if (desc.includes("farmacia") || desc.includes("drogaria") || desc.includes("hospital"))
+        return "Saúde";
+
+    if (desc.includes("luz") || desc.includes("agua") || desc.includes("energia") || desc.includes("gas"))
+        return "Casa";
 
     return "Outros";
 }
@@ -133,12 +150,12 @@ function atualizar() {
     let lista = document.getElementById("lista");
     lista.innerHTML = dadosMes.map((d,i)=>`
         <div class="item">
-            <span>${d.desc} (${d.cartao}) - R$ ${d.val.toFixed(2)}</span>
+            <span>${d.desc} (${d.cartao}) - R$ ${d.val.toFixed(2)} | ${d.categoria}</span>
             <button class="delete" onclick="remover(${i})">X</button>
         </div>
     `).join("");
 
-    // gráfico categoria
+    // 📊 gráfico categoria
     let cat = {};
     dadosMes.forEach(d=>{
         cat[d.categoria] = (cat[d.categoria]||0) + d.val;
@@ -153,7 +170,7 @@ function atualizar() {
         }
     });
 
-    // gráfico mês (histórico)
+    // 📈 gráfico mensal
     let meses = {};
     dados.forEach(d=>{
         meses[d.mes] = (meses[d.mes]||0) + d.val;
