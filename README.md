@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 <title>App Financeiro PRO - Mobile</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,6 +15,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: #0f172a;
@@ -23,8 +28,9 @@ body {
     min-height: 100vh;
 }
 
-/* Container principal */
+/* Container principal - OCUPA 100% DA LARGURA */
 .container {
+    width: 100%;
     max-width: 600px;
     margin: 0 auto;
 }
@@ -55,7 +61,7 @@ h2, h3 {
     padding: 20px;
     margin-bottom: 16px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    transition: transform 0.1s ease;
+    width: 100%;
 }
 
 /* Card de total - destaque */
@@ -75,6 +81,7 @@ h2, h3 {
 /* Formulário */
 .form-group {
     margin-bottom: 12px;
+    width: 100%;
 }
 
 label {
@@ -88,7 +95,7 @@ label {
 input, select, button {
     width: 100%;
     padding: 14px 12px;
-    font-size: 16px; /* Evita zoom automático no iOS */
+    font-size: 16px;
     border-radius: 12px;
     border: none;
     background: #334155;
@@ -164,8 +171,7 @@ button.btn-info {
     font-weight: 500;
     flex: 1 0 auto;
     text-align: center;
-    white-space: nowrap;
-    overflow-x: auto;
+    word-break: keep-all;
 }
 
 /* Lista de gastos */
@@ -269,8 +275,8 @@ canvas {
     border-radius: 10px;
 }
 
-/* Ajustes para telas muito pequenas (até 480px) */
-@media (max-width: 480px) {
+/* ========== RESPONSIVIDADE GARANTIDA PARA GITHUB PAGES ========== */
+@media (max-width: 600px) {
     body {
         padding: 12px;
     }
@@ -286,7 +292,6 @@ canvas {
     .item-gasto {
         flex-direction: column;
         align-items: stretch;
-        text-align: left;
     }
     
     .item-actions {
@@ -315,30 +320,52 @@ canvas {
     }
 }
 
-/* Ajustes para telas médias (tablets) */
-@media (min-width: 768px) {
-    .container {
-        max-width: 700px;
+@media (max-width: 400px) {
+    body {
+        padding: 8px;
     }
     
-    .grid-cards {
-        gap: 12px;
-    }
-    
-    .badge-card {
-        padding: 10px 18px;
-        font-size: 0.9rem;
-    }
-}
-
-/* Modo paisagem no mobile */
-@media (max-width: 900px) and (orientation: landscape) {
-    .lista-gastos {
-        max-height: 250px;
+    .card {
+        padding: 12px;
     }
     
     .total-valor {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
+    }
+    
+    h1 {
+        font-size: 1.4rem;
+    }
+    
+    h2, h3 {
+        font-size: 1rem;
+    }
+    
+    input, select, button {
+        padding: 12px 10px;
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+    .container {
+        max-width: 550px;
+    }
+}
+
+@media (min-width: 769px) {
+    .container {
+        max-width: 600px;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .lista-gastos {
+        max-height: 180px;
+    }
+    
+    .total-valor {
+        font-size: 1.5rem;
     }
 }
 </style>
