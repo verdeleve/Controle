@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=yes">
+<title>App Financeiro PRO - Com Datas</title>
+
+<!-- CONFIGURAÇÕES PARA ABRIR COMO APP NO CELULAR (SEM NOVA ABA) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="App Financeiro">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f172a">
+
+<!-- ÍCONE PARA TELA DO CELULAR (crie um arquivo icone.png na mesma pasta) -->
+<link rel="apple-touch-icon" href="icone.png">
+<link rel="icon" type="image/png" href="icone.png">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #0f172a;
+    color: #f1f5f9;
+    padding: 16px;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+h2, h3 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card {
+    background: #1e293b;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    width: 100%;
+}
+
+.card-total {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    text-align: center;
+}
+
+.total-valor {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #22c55e;
+    word-break: break-word;
+}
+
+.form-group {
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+label {
+    display: block;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 14px 12px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: none;
+    background: #334155;
+    color: #f1f5f9;
+    transition: all 0.2s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    background: #475569;
+    box-shadow: 0 0 0 2px #22c55e;
+}
+
+input::placeholder {
+    color: #94a3b8;
+}
+
+button {
+    background: #22c55e;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    margin-top: 8px;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button.btn-secondary {
+    background: #475569;
+}
+
+button.btn-danger {
+    background: #ef4444;
+}
+
+button.btn-warning {
+    background: #f59e0b;
+}
+
+button.btn-info {
+    background: #3b82f6;
+}
+
+/* Toggle switch para data automática */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0f172a;
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.toggle-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #475569;
+    transition: 0.3s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #22c55e;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+.data-manual {
+    display: none;
+}
+
+.data-manual.visible {
+    display: block;
+}
+
+/* Grid de botões */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.button-group button {
+    flex: 1;
+    margin-top: 0;
+}
+
+.grid-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.badge-card {
+    background: #334155;
+    padding: 10px 14px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    flex: 1 0 auto;
+    text-align: center;
+    word-break: keep-all;
+}
+
+.lista-gastos {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.item-gasto {
+    background: #0f172a;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.item-info {
+    flex: 2;
+    min-width: 150px;
+}
+
+.item-desc {
+    font-weight: bold;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+.item-meta {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.item-valor {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #22c55e;
+}
+
+.item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.item-actions button {
+    width: auto;
+    padding: 8px 14px;
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+canvas {
+    max-height: 280px;
+    width: 100% !important;
+    margin-top: 10px;
+}
+
+.filtro-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filtro-row .form-group {
+    flex: 2;
+    margin-bottom: 0;
+}
+
+.filtro-row button {
+    flex: 1;
+    margin-top: 0;
+}
+
+.sem-dados {
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e293b;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    body { padding: 12px; }
+    .card { padding: 16px; }
+    .total-valor { font-size: 2rem; }
+    .item-gasto { flex-direction: column; align-items: stretch; }
+    .item-actions { justify-content: flex-end; }
+    .badge-card { white-space: normal; word-break: break-word; }
+    .filtro-row { flex-direction: column; }
+    .filtro-row .form-group { width: 100%; }
+    .button-group { flex-direction: column; }
+    .button-group button { width: 100%; }
+}
+
+@media (max-width: 400px) {
+    body { padding: 8px; }
+    .card { padding: 12px; }
+    .total-valor { font-size: 1.6rem; }
+    h1 { font-size: 1.4rem; }
+    h2, h3 { font-size: 1rem; }
+    input, select, button { padding: 12px 10px; font-size: 14px; }
+}
+
+@media (min-width: 601px) and (max-width: 768px) {
+    .container { max-width: 550px; }
+}
+
+@media (min-width: 769px) {
+    .container { max-width: 600px; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .lista-gastos { max-height: 180px; }
+    .total-valor { font-size: 1.5rem; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>💰 App Financeiro</h1>
+
+    <div class="card card-total">
+        <h2>📊 Total do mês</h2>
+        <div class="total-valor" id="total">R$ 0,00</div>
+    </div>
+
+    <div class="card">
+        <h3>📅 Período</h3>
+        <div class="filtro-row">
+            <div class="form-group">
+                <label>Mês/Ano</label>
+                <input type="month" id="mesSeletor">
+            </div>
+            <button id="btnFiltrar" class="btn-info">🔍 Filtrar</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>💳 Por forma de pagamento</h3>
+        <div id="cards" class="grid-cards"></div>
+    </div>
+
+    <!-- Formulário com DATA -->
+    <div class="card">
+        <h3>➕ Adicionar gasto</h3>
+        
+        <div class="form-group">
+            <label>Descrição</label>
+            <input id="desc" placeholder="Ex: Ifood, Uber, Posto..." autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label>Categoria</label>
+            <select id="categoria">
+                <option value="">🤖 Automático</option>
+                <option>🛒 Mercado</option>
+                <option>🍔 Alimentação</option>
+                <option>⛽ Combustível</option>
+                <option>🚗 Transporte</option>
+                <option>🛍️ Compras</option>
+                <option>📺 Assinatura</option>
+                <option>💊 Saúde</option>
+                <option>🏠 Casa</option>
+                <option>📌 Outros</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Forma de pagamento</label>
+            <select id="cartao">
+                <option>💳 Nubank</option>
+                <option>💳 Ourocard</option>
+                <option>💳 Débito</option>
+                <option>🍽️ VR</option>
+                <option>💵 Dinheiro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Valor (R$)</label>
+            <input id="val" type="text" placeholder="0,00" autocomplete="off">
+        </div>
+
+        <!-- TOGGLE DATA AUTOMÁTICA -->
+        <div class="toggle-container">
+            <span class="toggle-label">📅 Data automática (hoje)</span>
+            <label class="switch">
+                <input type="checkbox" id="autoDataToggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <!-- DATA MANUAL (escondido inicialmente) -->
+        <div id="dataManualDiv" class="data-manual">
+            <div class="form-group">
+                <label>📆 Selecione a data</label>
+                <input type="date" id="dataManual">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="btnAdd">➕ Adicionar</button>
+            <button id="btnCancelar" class="btn-secondary" style="display:none;">✖️ Cancelar</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📂 Importar fatura (PDF)</h3>
+        <input type="file" id="pdfInput" accept=".pdf">
+        <small style="color:#94a3b8; display:block; margin-top:8px;">📌 Suporte para faturas Nubank e Ourocard</small>
+    </div>
+
+    <div class="card">
+        <h3>📊 Gastos por categoria</h3>
+        <canvas id="grafico"></canvas>
+    </div>
+
+    <div class="card">
+        <h3>📋 Lista de gastos</h3>
+        <div id="lista" class="lista-gastos"></div>
+        <div id="semDados" class="sem-dados">✨ Nenhum gasto no período</div>
+    </div>
+
+    <div class="button-group" style="margin-bottom: 20px;">
+        <button id="btnExportar" class="btn-info">📎 Exportar backup</button>
+        <button id="btnLimparTudo" class="btn-danger">⚠️ Limpar tudo</button>
+    </div>
+</div>
+
+<script>
+// ---------- DECLARAÇÃO DE VARIÁVEIS ----------
+let dados = JSON.parse(localStorage.getItem("dados")) || [];
+let editId = null;
+let mesAtualFiltro = new Date().toISOString().slice(0, 7);
+
+// Elementos DOM
+const descEl = document.getElementById("desc");
+const catEl = document.getElementById("categoria");
+const cartaoEl = document.getElementById("cartao");
+const valEl = document.getElementById("val");
+const totalEl = document.getElementById("total");
+const cardsDiv = document.getElementById("cards");
+const pdfInput = document.getElementById("pdfInput");
+const listaDiv = document.getElementById("lista");
+const btnAdd = document.getElementById("btnAdd");
+const btnCancelar = document.getElementById("btnCancelar");
+const mesSeletor = document.getElementById("mesSeletor");
+const btnFiltrar = document.getElementById("btnFiltrar");
+const btnExportar = document.getElementById("btnExportar");
+const btnLimparTudo = document.getElementById("btnLimparTudo");
+const semDadosDiv = document.getElementById("semDados");
+const graficoCanvas = document.getElementById("grafico");
+const autoDataToggle = document.getElementById("autoDataToggle");
+const dataManualDiv = document.getElementById("dataManualDiv");
+const dataManualInput = document.getElementById("dataManual");
+
+let chartInstance = null;
+
+// ---------- FUNÇÃO PARA CONVERTER VALOR COM VÍRGULA ----------
+function converterValorParaNumero(valorStr) {
+    // Remove espaços
+    valorStr = valorStr.trim();
+    // Substitui vírgula por ponto
+    valorStr = valorStr.replace(',', '.');
+    // Remove qualquer coisa que não seja número ou ponto (exceto o primeiro ponto)
+    let partes = valorStr.split('.');
+    if (partes.length > 2) {
+        // Se tiver mais de um ponto, mantém só o primeiro (como separador decimal)
+        valorStr = partes[0] + '.' + partes.slice(1).join('');
+    }
+    // Converte para número
+    let numero = parseFloat(valorStr);
+    return isNaN(numero) ? null : numero;
+}
+
+function gerarId() {
+    return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+}
+
+function detectarCategoria(desc) {
+    desc = desc.toLowerCase();
+    if (desc.includes("mercado") || desc.includes("supermercado") || desc.includes("extra") || desc.includes("carrefour") || desc.includes("pão de açúcar") || desc.includes("assai") || desc.includes("atacadao")) return "🛒 Mercado";
+    if (desc.includes("padaria") || desc.includes("restaurante") || desc.includes("ifood") || desc.includes("lanche") || desc.includes("hamburguer")) return "🍔 Alimentação";
+    if (desc.includes("posto") || desc.includes("shell") || desc.includes("gasolina") || desc.includes("petrobras")) return "⛽ Combustível";
+    if (desc.includes("uber") || desc.includes("99") || desc.includes("taxi")) return "🚗 Transporte";
+    if (desc.includes("netflix") || desc.includes("spotify") || desc.includes("disney") || desc.includes("prime")) return "📺 Assinatura";
+    if (desc.includes("farmacia") || desc.includes("medico") || desc.includes("droga")) return "💊 Saúde";
+    if (desc.includes("luz") || desc.includes("agua") || desc.includes("aluguel") || desc.includes("condominio")) return "🏠 Casa";
+    if (desc.includes("roupa") || desc.includes("shopping") || desc.includes("loja")) return "🛍️ Compras";
+    return "📌 Outros";
+}
+
+function detectarCartaoPdf(linha) {
+    if (linha.includes("••••")) return "💳 Nubank";
+    if (linha.toLowerCase().includes("ourocard")) return "💳 Ourocard";
+    return "💳 Nubank";
+}
+
+// Obter data atual formatada
+function getDataAtual() {
+    const hoje = new Date();
+    return {
+        dia: hoje.getDate(),
+        mes: hoje.getMonth() + 1,
+        ano: hoje.getFullYear()
+    };
+}
+
+// Obter data do input manual
+function getDataManual() {
+    if (!dataManualInput.value) return null;
+    const [ano, mes, dia] = dataManualInput.value.split('-').map(Number);
+    return { dia, mes, ano };
+}
+
+function salvarEAtualizar() {
+    localStorage.setItem("dados", JSON.stringify(dados));
+    atualizarTela();
+}
+
+function cancelarEdicao() {
+    editId = null;
+    btnAdd.textContent = "➕ Adicionar";
+    btnCancelar.style.display = "none";
+    descEl.value = "";
+    catEl.value = "";
+    cartaoEl.value = "💳 Nubank";
+    valEl.value = "";
+    autoDataToggle.checked = true;
+    dataManualDiv.classList.remove("visible");
+    dataManualInput.value = "";
+}
+
+function adicionarOuEditar() {
+    let desc = descEl.value.trim();
+    let categoria = catEl.value;
+    let cartao = cartaoEl.value;
+    let val = converterValorParaNumero(valEl.value);
+
+    if (!desc) {
+        alert("Digite uma descrição!");
+        return;
+    }
+    if (val === null || val <= 0) {
+        alert("Digite um valor válido (maior que zero)! Use ponto ou vírgula. Ex: 19,90 ou 19.90");
+        return;
+    }
+
+    if (!categoria || categoria === "") {
+        categoria = detectarCategoria(desc);
+    }
+
+    // PEGAR DATA (automática ou manual)
+    let dia, mes, ano;
+    const usarDataAuto = autoDataToggle.checked;
+    
+    if (usarDataAuto) {
+        const dataAtual = getDataAtual();
+        dia = dataAtual.dia;
+        mes = dataAtual.mes;
+        ano = dataAtual.ano;
+    } else {
+        const dataManual = getDataManual();
+        if (!dataManual) {
+            alert("Por favor, selecione uma data!");
+            return;
+        }
+        dia = dataManual.dia;
+        mes = dataManual.mes;
+        ano = dataManual.ano;
+    }
+
+    if (editId !== null) {
+        const index = dados.findIndex(item => item.id === editId);
+        if (index !== -1) {
+            dados[index] = { ...dados[index], desc, categoria, cartao, val, dia, mes, ano };
+        }
+        cancelarEdicao();
+    } else {
+        dados.push({
+            id: gerarId(),
+            desc,
+            categoria,
+            cartao,
+            val,
+            dia,
+            mes,
+            ano
+        });
+    }
+
+    descEl.value = "";
+    catEl.value = "";
+    valEl.value = "";
+    salvarEAtualizar();
+}
+
+function editarGasto(id) {
+    const item = dados.find(d => d.id === id);
+    if (!item) return;
+
+    descEl.value = item.desc;
+    catEl.value = item.categoria;
+    cartaoEl.value = item.cartao;
+    valEl.value = item.val.toFixed(2).replace('.', ','); // Mostra com vírgula
+
+    // Configurar data na edição
+    const dataItem = `${item.ano}-${String(item.mes).padStart(2, '0')}-${String(item.dia).padStart(2, '0')}`;
+    
+    // Verificar se a data do item é hoje
+    const hoje = getDataAtual();
+    const isHoje = (item.dia === hoje.dia && item.mes === hoje.mes && item.ano === hoje.ano);
+    
+    if (isHoje) {
+        autoDataToggle.checked = true;
+        dataManualDiv.classList.remove("visible");
+    } else {
+        autoDataToggle.checked = false;
+        dataManualDiv.classList.add("visible");
+        dataManualInput.value = dataItem;
+    }
+
+    editId = id;
+    btnAdd.textContent = "💾 Salvar edição";
+    btnCancelar.style.display = "block";
+    document.querySelector(".card:nth-of-type(4)").scrollIntoView({ behavior: "smooth" });
+}
+
+function removerGasto(id) {
+    if (confirm("Tem certeza que deseja excluir este gasto?")) {
+        dados = dados.filter(d => d.id !== id);
+        if (editId === id) cancelarEdicao();
+        salvarEAtualizar();
+    }
+}
+
+function processarPdf(texto) {
+    let linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
+    let novosGastos = 0;
+
+    linhas.forEach(linha => {
+        let data = linha.match(/(\d{2})\/(\d{2})/);
+        let nubank = linha.match(/(\d{1,2}) [A-Z]{3}/);
+        let valorMatch = linha.match(/R\$ ?([\d.,]+)/);
+        
+        if (!valorMatch) return;
+
+        let valorStr = valorMatch[1].replace(/\./g, '').replace(',', '.');
+        let valor = parseFloat(valorStr);
+        if (isNaN(valor)) return;
+
+        let desc = linha.replace(/R\$.*$/, "").replace(/- Parcela.*$/, "").replace(/.*\d{4}/, "").trim();
+        if (desc.length < 2) desc = "Gasto identificado";
+
+        let dia = 1, mes = new Date().getMonth() + 1, ano = new Date().getFullYear();
+        if (data) { dia = parseInt(data[1]); mes = parseInt(data[2]); }
+        if (nubank) dia = parseInt(nubank[1]);
+
+        const jaExiste = dados.some(d => d.desc === desc && Math.abs(d.val - valor) < 0.01 && d.dia === dia && d.mes === mes);
+        if (!jaExiste) {
+            dados.push({
+                id: gerarId(),
+                desc: desc,
+                categoria: detectarCategoria(desc),
+                cartao: detectarCartaoPdf(linha),
+                val: valor,
+                dia: dia,
+                mes: mes,
+                ano: ano
+            });
+            novosGastos++;
+        }
+    });
+
+    if (novosGastos > 0) {
+        alert(`✅ ${novosGastos} novos gastos importados!`);
+        salvarEAtualizar();
+    } else {
+        alert("⚠️ Nenhum gasto novo encontrado no PDF.");
+    }
+}
+
+async function importarPdf(file) {
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+        try {
+            const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(event.target.result) }).promise;
+            let textoCompleto = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                textoCompleto += content.items.map(item => item.str).join(" ") + "\n";
+            }
+            processarPdf(textoCompleto);
+        } catch (error) {
+            alert("Erro ao processar o PDF.");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function atualizarTela() {
+    const [anoSelecionado, mesSelecionado] = mesAtualFiltro.split('-').map(Number);
+    const dadosFiltrados = dados.filter(d => d.ano === anoSelecionado && d.mes === mesSelecionado);
+
+    if (dadosFiltrados.length === 0) {
+        semDadosDiv.style.display = "block";
+        listaDiv.innerHTML = "";
+    } else {
+        semDadosDiv.style.display = "none";
+        listaDiv.innerHTML = dadosFiltrados.map(item => `
+            <div class="item-gasto">
+                <div class="item-info">
+                    <div class="item-desc">${item.desc}</div>
+                    <div class="item-meta">${item.dia}/${item.mes}/${item.ano} • ${item.cartao} • ${item.categoria}</div>
+                </div>
+                <div class="item-valor">R$ ${item.val.toFixed(2).replace('.', ',')}</div>
+                <div class="item-actions">
+                    <button class="btn-warning" onclick="editarGasto('${item.id}')">✏️</button>
+                    <button class="btn-danger" onclick="removerGasto('${item.id}')">🗑️</button>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    const total = dadosFiltrados.reduce((s, i) => s + i.val, 0);
+    totalEl.innerHTML = `R$ ${total.toFixed(2).replace('.', ',')}`;
+
+    const cartoesMap = {};
+    dadosFiltrados.forEach(i => cartoesMap[i.cartao] = (cartoesMap[i.cartao] || 0) + i.val);
+    cardsDiv.innerHTML = Object.entries(cartoesMap).length ? 
+        Object.entries(cartoesMap).map(([k, v]) => `<div class="badge-card">${k}: R$ ${v.toFixed(2).replace('.', ',')}</div>`).join("") :
+        '<div class="badge-card">Nenhum gasto no período</div>';
+
+    const categoriaMap = {};
+    dadosFiltrados.forEach(i => categoriaMap[i.categoria] = (categoriaMap[i.categoria] || 0) + i.val);
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(graficoCanvas, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(categoriaMap).length ? Object.keys(categoriaMap) : ['Sem dados'],
+            datasets: [{
+                data: Object.keys(categoriaMap).length ? Object.values(categoriaMap) : [1],
+                backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec489a', '#14b8a6', '#f97316', '#64748b', '#a855f7'],
+                borderWidth: 0
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#f1f5f9' } } } }
+    });
+}
+
+function exportarDados() {
+    const dataStr = JSON.stringify(dados, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `financeiro_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert("✅ Backup exportado!");
+}
+
+function limparTodosDados() {
+    if (confirm("⚠️ ATENÇÃO: Isso vai apagar TODOS os seus gastos. Tem certeza?")) {
+        dados = [];
+        cancelarEdicao();
+        salvarEAtualizar();
+        alert("Todos os dados foram removidos.");
+    }
+}
+
+// Toggle da data automática
+function toggleDataAuto() {
+    if (autoDataToggle.checked) {
+        dataManualDiv.classList.remove("visible");
+        dataManualInput.value = "";
+    } else {
+        dataManualDiv.classList.add("visible");
+        // Pré-preencher com a data atual
+        const hoje = new Date();
+        const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+        dataManualInput.value = dataHoje;
+    }
+}
+
+function init() {
+    const hoje = new Date();
+    mesAtualFiltro = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+    mesSeletor.value = mesAtualFiltro;
+
+    btnAdd.onclick = adicionarOuEditar;
+    btnCancelar.onclick = cancelarEdicao;
+    btnFiltrar.onclick = () => { mesAtualFiltro = mesSeletor.value; atualizarTela(); };
+    btnExportar.onclick = exportarDados;
+    btnLimparTudo.onclick = limparTodosDados;
+    pdfInput.onchange = (e) => { if (e.target.files.length) importarPdf(e.target.files[0]); pdfInput.value = ""; };
+    
+    autoDataToggle.onchange = toggleDataAuto;
+    
+    // Data manual inicial vazia
+    dataManualInput.value = "";
+
+    atualizarTela();
+}
+
+init();
+</script>
+</body>
+</html>
