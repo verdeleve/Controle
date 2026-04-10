@@ -3,18 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=yes">
-<title>App Financeiro PRO - Com Datas</title>
+<title>App Financeiro PRO</title>
 
-<!-- CONFIGURAÇÕES PARA ABRIR COMO APP NO CELULAR (SEM NOVA ABA) -->
+<!-- ============================================= -->
+<!-- CONFIGURAÇÕES PARA FUNCIONAR COMO APP NO CELULAR -->
+<!-- ============================================= -->
+
+<!-- Manifest para PWA (Android/Chrome) -->
+<link rel="manifest" href="site.webmanifest">
+
+<!-- ÍCONES para iOS e navegadores -->
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+
+<!-- Para iPhone/iPad (iOS) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="App Financeiro">
+<meta name="apple-mobile-web-app-title" content="Finanças">
+
+<!-- Para Android/Chrome -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f172a">
 
-<!-- ÍCONE PARA TELA DO CELULAR (crie um arquivo icone.png na mesma pasta) -->
-<link rel="apple-touch-icon" href="icone.png">
-<link rel="icon" type="image/png" href="icone.png">
+<!-- ============================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -525,17 +537,12 @@ let chartInstance = null;
 
 // ---------- FUNÇÃO PARA CONVERTER VALOR COM VÍRGULA ----------
 function converterValorParaNumero(valorStr) {
-    // Remove espaços
     valorStr = valorStr.trim();
-    // Substitui vírgula por ponto
     valorStr = valorStr.replace(',', '.');
-    // Remove qualquer coisa que não seja número ou ponto (exceto o primeiro ponto)
     let partes = valorStr.split('.');
     if (partes.length > 2) {
-        // Se tiver mais de um ponto, mantém só o primeiro (como separador decimal)
         valorStr = partes[0] + '.' + partes.slice(1).join('');
     }
-    // Converte para número
     let numero = parseFloat(valorStr);
     return isNaN(numero) ? null : numero;
 }
@@ -563,7 +570,6 @@ function detectarCartaoPdf(linha) {
     return "💳 Nubank";
 }
 
-// Obter data atual formatada
 function getDataAtual() {
     const hoje = new Date();
     return {
@@ -573,7 +579,6 @@ function getDataAtual() {
     };
 }
 
-// Obter data do input manual
 function getDataManual() {
     if (!dataManualInput.value) return null;
     const [ano, mes, dia] = dataManualInput.value.split('-').map(Number);
@@ -617,7 +622,6 @@ function adicionarOuEditar() {
         categoria = detectarCategoria(desc);
     }
 
-    // PEGAR DATA (automática ou manual)
     let dia, mes, ano;
     const usarDataAuto = autoDataToggle.checked;
     
@@ -669,12 +673,10 @@ function editarGasto(id) {
     descEl.value = item.desc;
     catEl.value = item.categoria;
     cartaoEl.value = item.cartao;
-    valEl.value = item.val.toFixed(2).replace('.', ','); // Mostra com vírgula
+    valEl.value = item.val.toFixed(2).replace('.', ',');
 
-    // Configurar data na edição
     const dataItem = `${item.ano}-${String(item.mes).padStart(2, '0')}-${String(item.dia).padStart(2, '0')}`;
     
-    // Verificar se a data do item é hoje
     const hoje = getDataAtual();
     const isHoje = (item.dia === hoje.dia && item.mes === hoje.mes && item.ano === hoje.ano);
     
@@ -838,14 +840,12 @@ function limparTodosDados() {
     }
 }
 
-// Toggle da data automática
 function toggleDataAuto() {
     if (autoDataToggle.checked) {
         dataManualDiv.classList.remove("visible");
         dataManualInput.value = "";
     } else {
         dataManualDiv.classList.add("visible");
-        // Pré-preencher com a data atual
         const hoje = new Date();
         const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
         dataManualInput.value = dataHoje;
@@ -866,7 +866,6 @@ function init() {
     
     autoDataToggle.onchange = toggleDataAuto;
     
-    // Data manual inicial vazia
     dataManualInput.value = "";
 
     atualizarTela();
