@@ -464,7 +464,6 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
         </div>
     </div>
 </div>
-
 <script>
 // ---------- ESTADO ----------
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
@@ -558,7 +557,6 @@ function salvarEAtualizar() {
 
 // ---------- MÁSCARA DE VALOR (vírgula automática) ----------
 valEl.addEventListener("input", function () {
-    // Remove tudo que não é dígito
     let apenasDigitos = this.value.replace(/\D/g, "");
     
     if (apenasDigitos === "") {
@@ -566,15 +564,11 @@ valEl.addEventListener("input", function () {
         return;
     }
     
-    // Limita para evitar números gigantes (máx 10 dígitos = até 99.999.999,99)
     if (apenasDigitos.length > 10) {
         apenasDigitos = apenasDigitos.slice(0, 10);
     }
     
-    // Converte para número e divide por 100
     const numero = parseInt(apenasDigitos, 10) / 100;
-    
-    // Formata com vírgula
     this.value = numero.toFixed(2).replace('.', ',');
 });
 
@@ -599,7 +593,6 @@ btnSalvarSaldo.addEventListener("click", () => {
     
     const negativo = texto.startsWith("-");
     texto = texto.replace("-", "").replace(/[^\d,.]/g, "");
-    // Troca ponto por nada (milhar) e vírgula por ponto
     texto = texto.replace(/\./g, "").replace(",", ".");
     
     let numero = parseFloat(texto);
@@ -712,7 +705,6 @@ function editarGasto(id) {
     descEl.value = item.desc;
     catEl.value = item.categoria;
     cartaoEl.value = item.cartao;
-    // Preenche no formato da máscara (só dígitos)
     valEl.value = item.val.toFixed(2).replace('.', ',');
 
     const dataItem = `${item.ano}-${String(item.mes).padStart(2, '0')}-${String(item.dia).padStart(2, '0')}`;
@@ -754,7 +746,6 @@ function cancelarEdicao() {
     dataManualDiv.classList.remove("visible");
     dataManualInput.value = "";
 }
-
 // ---------- PDF ----------
 function processarPdf(texto) {
     const linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
@@ -844,6 +835,97 @@ function atualizarTela() {
         `).join("");
     }
 
-    // Por forma de pagamento
     const cartoesMap = {};
-    dadosFiltrados.forEach(i => cartoesMap[i.cartao] = (cartoesMap[i.c
+    dadosFiltrados.forEach(i => cartoesMap[i.cartao] = (cartoesMap[i.cartao] || 0) + i.val);
+    cardsDiv.innerHTML = Object.entries(cartoesMap).length ? 
+        Object.entries(cartoesMap).map(([k, v]) => `<div class="badge-card">${k}: ${formatarMoeda(v)}</div>`).join("") :
+        '<div class="badge-card">Nenhum gasto no período</div>';
+
+    const categoriaMap = {};
+    dadosFiltrados.forEach(i => categoriaMap[i.categoria] = (categoriaMap[i.categoria] || 0) + i.val);
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(graficoCanvas, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(categoriaMap).length ? Object.keys(categoriaMap) : ['Sem dados'],
+            datasets: [{
+                data: Object.keys(categoriaMap).length ? Object.values(categoriaMap) : [1],
+                backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec489a', '#14b8a6', '#f97316', '#64748b', '#a855f7'],
+                borderWidth: 0
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#f1f5f9' } } } }
+    });
+
+    atualizarSaldoVisual();
+    renderizarFaturas();
+}
+
+// ---------- EXPORTAR / LIMPAR ----------
+function exportarDados() {
+    const backup = { dados, saldo };
+    const dataStr = JSON.stringify(backup, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `financeiro_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert("✅ Backup exportado!");
+}
+
+function limparTodosDados() {
+    if (confirm("⚠️ ATENÇÃO: Isso vai apagar TODOS os seus gastos e o saldo. Tem certeza?")) {
+        dados = [];
+        saldo = 0;
+        cancelarEdicao();
+        salvarEAtualizar();
+        alert("Todos os dados foram removidos.");
+    }
+}
+
+// ---------- DATA AUTOMÁTICA ----------
+function toggleDataAuto() {
+    if (autoDataToggle.checked) {
+        dataManualDiv.classList.remove("visible");
+        dataManualInput.value = "";
+    } else {
+        dataManualDiv.classList.add("visible");
+        const hoje = new Date();
+        const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+        dataManualInput.value = dataHoje;
+    }
+}
+
+// ---------- INIT ----------
+function init() {
+    const hoje = new Date();
+    mesAtualFiltro = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+    mesSeletor.value = mesAtualFiltro;
+
+    btnAdd.addEventListener("click", adicionarOuEditar);
+    btnCancelar.addEventListener("click", cancelarEdicao);
+    btnFiltrar.addEventListener("click", () => { 
+        mesAtualFiltro = mesSeletor.value; 
+        atualizarTela(); 
+    });
+    btnExportar.addEventListener("click", exportarDados);
+    btnLimparTudo.addEventListener("click", limparTodosDados);
+    pdfInput.addEventListener("change", (e) => { 
+        if (e.target.files.length) importarPdf(e.target.files[0]); 
+        pdfInput.value = ""; 
+    });
+    
+    autoDataToggle.addEventListener("change", toggleDataAuto);
+    
+    dataManualInput.value = "";
+
+    atualizarTela();
+}
+
+init();
+</script>
+</body>
+</html>
