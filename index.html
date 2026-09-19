@@ -9,20 +9,15 @@
 <!-- CONFIGURAÇÕES PARA FUNCIONAR COMO APP NO CELULAR -->
 <!-- ============================================= -->
 
-<!-- Manifest para PWA (Android/Chrome) -->
 <link rel="manifest" href="site.webmanifest">
 
-<!-- ÍCONES para iOS e navegadores -->
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 
-<!-- Para iPhone/iPad (iOS) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanças">
-
-<!-- Para Android/Chrome -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f172a">
 
@@ -32,16 +27,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-html, body {
-    width: 100%;
-    overflow-x: hidden;
-}
+html, body { width: 100%; overflow-x: hidden; }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -51,11 +39,7 @@ body {
     min-height: 100vh;
 }
 
-.container {
-    width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
-}
+.container { width: 100%; max-width: 600px; margin: 0 auto; }
 
 h1 {
     text-align: center;
@@ -84,23 +68,85 @@ h2, h3 {
     width: 100%;
 }
 
-.card-total {
+/* SALDO */
+.card-saldo {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border: 1px solid #334155;
     text-align: center;
+    position: relative;
 }
 
-.total-valor {
+.saldo-valor {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #22c55e;
+    word-break: break-word;
+    transition: color 0.3s;
+}
+
+.saldo-valor.positivo { color: #22c55e; }
+.saldo-valor.negativo { color: #ef4444; }
+
+.btn-editar-saldo {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #334155;
+    width: auto;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    margin: 0;
+    border-radius: 12px;
+}
+
+/* FATURAS */
+.fatura-item {
+    background: #0f172a;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.fatura-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.fatura-nome {
+    font-weight: bold;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fatura-valor {
+    font-weight: bold;
+    font-size: 1.3rem;
+    color: #f59e0b;
     word-break: break-word;
 }
 
-.form-group {
-    margin-bottom: 12px;
-    width: 100%;
+.fatura-actions {
+    display: flex;
+    gap: 8px;
 }
+
+.fatura-actions button {
+    width: auto;
+    padding: 8px 14px;
+    margin: 0;
+    font-size: 0.8rem;
+    flex: 1;
+}
+
+/* FORM E OUTROS */
+.form-group { margin-bottom: 12px; width: 100%; }
 
 label {
     display: block;
@@ -127,9 +173,7 @@ input:focus, select:focus {
     box-shadow: 0 0 0 2px #22c55e;
 }
 
-input::placeholder {
-    color: #94a3b8;
-}
+input::placeholder { color: #94a3b8; }
 
 button {
     background: #22c55e;
@@ -140,27 +184,13 @@ button {
     margin-top: 8px;
 }
 
-button:active {
-    transform: scale(0.98);
-}
+button:active { transform: scale(0.98); }
 
-button.btn-secondary {
-    background: #475569;
-}
+button.btn-secondary { background: #475569; }
+button.btn-danger { background: #ef4444; }
+button.btn-warning { background: #f59e0b; }
+button.btn-info { background: #3b82f6; }
 
-button.btn-danger {
-    background: #ef4444;
-}
-
-button.btn-warning {
-    background: #f59e0b;
-}
-
-button.btn-info {
-    background: #3b82f6;
-}
-
-/* Toggle switch para data automática */
 .toggle-container {
     display: flex;
     align-items: center;
@@ -171,31 +201,15 @@ button.btn-info {
     margin-bottom: 12px;
 }
 
-.toggle-label {
-    font-size: 0.9rem;
-    font-weight: 500;
-}
+.toggle-label { font-size: 0.9rem; font-weight: 500; }
 
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 52px;
-    height: 28px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+.switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
 
 .slider {
     position: absolute;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-color: #475569;
     transition: 0.3s;
     border-radius: 34px;
@@ -204,32 +218,19 @@ button.btn-info {
 .slider:before {
     position: absolute;
     content: "";
-    height: 22px;
-    width: 22px;
-    left: 3px;
-    bottom: 3px;
+    height: 22px; width: 22px;
+    left: 3px; bottom: 3px;
     background-color: white;
     transition: 0.3s;
     border-radius: 50%;
 }
 
-input:checked + .slider {
-    background-color: #22c55e;
-}
+input:checked + .slider { background-color: #22c55e; }
+input:checked + .slider:before { transform: translateX(24px); }
 
-input:checked + .slider:before {
-    transform: translateX(24px);
-}
+.data-manual { display: none; }
+.data-manual.visible { display: block; }
 
-.data-manual {
-    display: none;
-}
-
-.data-manual.visible {
-    display: block;
-}
-
-/* Grid de botões */
 .button-group {
     display: flex;
     gap: 10px;
@@ -237,10 +238,7 @@ input:checked + .slider:before {
     flex-wrap: wrap;
 }
 
-.button-group button {
-    flex: 1;
-    margin-top: 0;
-}
+.button-group button { flex: 1; margin-top: 0; }
 
 .grid-cards {
     display: flex;
@@ -260,10 +258,7 @@ input:checked + .slider:before {
     word-break: keep-all;
 }
 
-.lista-gastos {
-    max-height: 400px;
-    overflow-y: auto;
-}
+.lista-gastos { max-height: 400px; overflow-y: auto; }
 
 .item-gasto {
     background: #0f172a;
@@ -277,46 +272,15 @@ input:checked + .slider:before {
     gap: 10px;
 }
 
-.item-info {
-    flex: 2;
-    min-width: 150px;
-}
+.item-info { flex: 2; min-width: 150px; }
+.item-desc { font-weight: bold; font-size: 1rem; word-break: break-word; }
+.item-meta { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+.item-valor { font-weight: bold; font-size: 1.1rem; color: #22c55e; }
 
-.item-desc {
-    font-weight: bold;
-    font-size: 1rem;
-    word-break: break-word;
-}
+.item-actions { display: flex; gap: 8px; }
+.item-actions button { width: auto; padding: 8px 14px; margin: 0; font-size: 0.85rem; }
 
-.item-meta {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin-top: 4px;
-}
-
-.item-valor {
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: #22c55e;
-}
-
-.item-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.item-actions button {
-    width: auto;
-    padding: 8px 14px;
-    margin: 0;
-    font-size: 0.85rem;
-}
-
-canvas {
-    max-height: 280px;
-    width: 100% !important;
-    margin-top: 10px;
-}
+canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
 
 .filtro-row {
     display: flex;
@@ -325,42 +289,43 @@ canvas {
     align-items: flex-end;
 }
 
-.filtro-row .form-group {
-    flex: 2;
-    margin-bottom: 0;
+.filtro-row .form-group { flex: 2; margin-bottom: 0; }
+.filtro-row button { flex: 1; margin-top: 0; }
+
+.sem-dados { text-align: center; padding: 40px 20px; color: #64748b; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+
+/* MODAL SALDO */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
 }
 
-.filtro-row button {
-    flex: 1;
-    margin-top: 0;
-}
+.modal-overlay.visible { display: flex; }
 
-.sem-dados {
-    text-align: center;
-    padding: 40px 20px;
-    color: #64748b;
-}
-
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
+.modal {
     background: #1e293b;
-    border-radius: 10px;
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #475569;
-    border-radius: 10px;
-}
+.modal h3 { margin-bottom: 16px; }
 
-/* Responsividade */
 @media (max-width: 600px) {
     body { padding: 12px; }
     .card { padding: 16px; }
-    .total-valor { font-size: 2rem; }
+    .saldo-valor { font-size: 2rem; }
     .item-gasto { flex-direction: column; align-items: stretch; }
     .item-actions { justify-content: flex-end; }
     .badge-card { white-space: normal; word-break: break-word; }
@@ -368,28 +333,21 @@ canvas {
     .filtro-row .form-group { width: 100%; }
     .button-group { flex-direction: column; }
     .button-group button { width: 100%; }
+    .fatura-actions { flex-direction: column; }
 }
 
 @media (max-width: 400px) {
     body { padding: 8px; }
     .card { padding: 12px; }
-    .total-valor { font-size: 1.6rem; }
+    .saldo-valor { font-size: 1.6rem; }
     h1 { font-size: 1.4rem; }
     h2, h3 { font-size: 1rem; }
     input, select, button { padding: 12px 10px; font-size: 14px; }
 }
 
-@media (min-width: 601px) and (max-width: 768px) {
-    .container { max-width: 550px; }
-}
-
-@media (min-width: 769px) {
-    .container { max-width: 600px; }
-}
-
 @media (orientation: landscape) and (max-height: 500px) {
     .lista-gastos { max-height: 180px; }
-    .total-valor { font-size: 1.5rem; }
+    .saldo-valor { font-size: 1.5rem; }
 }
 </style>
 </head>
@@ -398,11 +356,20 @@ canvas {
 <div class="container">
     <h1>💰 App Financeiro</h1>
 
-    <div class="card card-total">
-        <h2>📊 Total do mês</h2>
-        <div class="total-valor" id="total">R$ 0,00</div>
+    <!-- SALDO DISPONÍVEL -->
+    <div class="card card-saldo">
+        <button class="btn-editar-saldo" id="btnEditarSaldo">✏️ Editar</button>
+        <h2>💰 Saldo disponível</h2>
+        <div class="saldo-valor positivo" id="saldoValor">R$ 0,00</div>
     </div>
 
+    <!-- FATURAS DOS CARTÕES -->
+    <div class="card">
+        <h3>💳 Faturas dos cartões</h3>
+        <div id="faturasContainer"></div>
+    </div>
+
+    <!-- PERÍODO -->
     <div class="card">
         <h3>📅 Período</h3>
         <div class="filtro-row">
@@ -414,12 +381,13 @@ canvas {
         </div>
     </div>
 
+    <!-- POR FORMA DE PAGAMENTO -->
     <div class="card">
         <h3>💳 Por forma de pagamento</h3>
         <div id="cards" class="grid-cards"></div>
     </div>
 
-    <!-- Formulário com DATA -->
+    <!-- ADICIONAR GASTO -->
     <div class="card">
         <h3>➕ Adicionar gasto</h3>
         
@@ -447,11 +415,11 @@ canvas {
         <div class="form-group">
             <label>Forma de pagamento</label>
             <select id="cartao">
-                <option>💳 Nubank</option>
-                <option>💳 Ourocard</option>
-                <option>💳 Débito</option>
-                <option>🍽️ VR</option>
+                <option>💳 Cartão Nubank</option>
+                <option>💳 Cartão Banco do Brasil</option>
+                <option>💳 Cartão Mercado Pago</option>
                 <option>💵 Dinheiro</option>
+                <option>🔄 Débito/Pix</option>
             </select>
         </div>
 
@@ -460,7 +428,6 @@ canvas {
             <input id="val" type="text" placeholder="0,00" autocomplete="off">
         </div>
 
-        <!-- TOGGLE DATA AUTOMÁTICA -->
         <div class="toggle-container">
             <span class="toggle-label">📅 Data automática (hoje)</span>
             <label class="switch">
@@ -469,7 +436,6 @@ canvas {
             </label>
         </div>
 
-        <!-- DATA MANUAL (escondido inicialmente) -->
         <div id="dataManualDiv" class="data-manual">
             <div class="form-group">
                 <label>📆 Selecione a data</label>
@@ -483,17 +449,20 @@ canvas {
         </div>
     </div>
 
+    <!-- IMPORTAR PDF -->
     <div class="card">
         <h3>📂 Importar fatura (PDF)</h3>
         <input type="file" id="pdfInput" accept=".pdf">
         <small style="color:#94a3b8; display:block; margin-top:8px;">📌 Suporte para faturas Nubank e Ourocard</small>
     </div>
 
+    <!-- GRÁFICO -->
     <div class="card">
         <h3>📊 Gastos por categoria</h3>
         <canvas id="grafico"></canvas>
     </div>
 
+    <!-- LISTA -->
     <div class="card">
         <h3>📋 Lista de gastos</h3>
         <div id="lista" class="lista-gastos"></div>
@@ -506,18 +475,37 @@ canvas {
     </div>
 </div>
 
+<!-- MODAL EDITAR SALDO -->
+<div class="modal-overlay" id="modalSaldo">
+    <div class="modal">
+        <h3>💰 Editar saldo disponível</h3>
+        <div class="form-group">
+            <label>Valor (use - para negativo)</label>
+            <input id="inputSaldo" type="text" placeholder="Ex: 1500,00 ou -200,00" autocomplete="off">
+        </div>
+        <div class="button-group">
+            <button id="btnSalvarSaldo">💾 Salvar</button>
+            <button id="btnCancelarSaldo" class="btn-secondary">✖️ Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
-// ---------- DECLARAÇÃO DE VARIÁVEIS ----------
+// ---------- VARIÁVEIS ----------
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
+let saldo = parseFloat(localStorage.getItem("saldo")) || 0;
 let editId = null;
 let mesAtualFiltro = new Date().toISOString().slice(0, 7);
 
-// Elementos DOM
+const CARTÕES_CREDITO = ["💳 Cartão Nubank", "💳 Cartão Banco do Brasil", "💳 Cartão Mercado Pago"];
+
+// DOM
 const descEl = document.getElementById("desc");
 const catEl = document.getElementById("categoria");
 const cartaoEl = document.getElementById("cartao");
 const valEl = document.getElementById("val");
-const totalEl = document.getElementById("total");
+const saldoValorEl = document.getElementById("saldoValor");
+const faturasContainer = document.getElementById("faturasContainer");
 const cardsDiv = document.getElementById("cards");
 const pdfInput = document.getElementById("pdfInput");
 const listaDiv = document.getElementById("lista");
@@ -533,18 +521,32 @@ const autoDataToggle = document.getElementById("autoDataToggle");
 const dataManualDiv = document.getElementById("dataManualDiv");
 const dataManualInput = document.getElementById("dataManual");
 
+// Modal saldo
+const modalSaldo = document.getElementById("modalSaldo");
+const inputSaldo = document.getElementById("inputSaldo");
+const btnEditarSaldo = document.getElementById("btnEditarSaldo");
+const btnSalvarSaldo = document.getElementById("btnSalvarSaldo");
+const btnCancelarSaldo = document.getElementById("btnCancelarSaldo");
+
 let chartInstance = null;
 
-// ---------- FUNÇÃO PARA CONVERTER VALOR COM VÍRGULA ----------
+// ---------- UTILITÁRIOS ----------
 function converterValorParaNumero(valorStr) {
-    valorStr = valorStr.trim();
-    valorStr = valorStr.replace(',', '.');
-    let partes = valorStr.split('.');
-    if (partes.length > 2) {
-        valorStr = partes[0] + '.' + partes.slice(1).join('');
-    }
+    if (!valorStr) return null;
+    valorStr = valorStr.toString().trim();
+    // Guarda o sinal
+    let negativo = valorStr.startsWith("-");
+    valorStr = valorStr.replace(/[^\d,.]/g, "");
+    valorStr = valorStr.replace(/\./g, "").replace(",", ".");
     let numero = parseFloat(valorStr);
-    return isNaN(numero) ? null : numero;
+    if (isNaN(numero)) return null;
+    return negativo ? -numero : numero;
+}
+
+function formatarMoeda(valor) {
+    let sinal = valor < 0 ? "-" : "";
+    let abs = Math.abs(valor);
+    return `${sinal}R$ ${abs.toFixed(2).replace('.', ',')}`;
 }
 
 function gerarId() {
@@ -565,18 +567,14 @@ function detectarCategoria(desc) {
 }
 
 function detectarCartaoPdf(linha) {
-    if (linha.includes("••••")) return "💳 Nubank";
-    if (linha.toLowerCase().includes("ourocard")) return "💳 Ourocard";
-    return "💳 Nubank";
+    if (linha.toLowerCase().includes("mercado pago")) return "💳 Cartão Mercado Pago";
+    if (linha.toLowerCase().includes("ourocard") || linha.toLowerCase().includes("banco do brasil")) return "💳 Cartão Banco do Brasil";
+    return "💳 Cartão Nubank";
 }
 
 function getDataAtual() {
     const hoje = new Date();
-    return {
-        dia: hoje.getDate(),
-        mes: hoje.getMonth() + 1,
-        ano: hoje.getFullYear()
-    };
+    return { dia: hoje.getDate(), mes: hoje.getMonth() + 1, ano: hoje.getFullYear() };
 }
 
 function getDataManual() {
@@ -587,6 +585,7 @@ function getDataManual() {
 
 function salvarEAtualizar() {
     localStorage.setItem("dados", JSON.stringify(dados));
+    localStorage.setItem("saldo", saldo.toString());
     atualizarTela();
 }
 
@@ -596,49 +595,115 @@ function cancelarEdicao() {
     btnCancelar.style.display = "none";
     descEl.value = "";
     catEl.value = "";
-    cartaoEl.value = "💳 Nubank";
+    cartaoEl.value = "💳 Cartão Nubank";
     valEl.value = "";
     autoDataToggle.checked = true;
     dataManualDiv.classList.remove("visible");
     dataManualInput.value = "";
 }
 
+// ---------- SALDO ----------
+function atualizarSaldoVisual() {
+    saldoValorEl.textContent = formatarMoeda(saldo);
+    saldoValorEl.className = "saldo-valor " + (saldo >= 0 ? "positivo" : "negativo");
+}
+
+btnEditarSaldo.onclick = () => {
+    inputSaldo.value = saldo.toString().replace(".", ",");
+    modalSaldo.classList.add("visible");
+};
+
+btnCancelarSaldo.onclick = () => {
+    modalSaldo.classList.remove("visible");
+};
+
+btnSalvarSaldo.onclick = () => {
+    const novo = converterValorParaNumero(inputSaldo.value);
+    if (novo === null) {
+        alert("Digite um valor válido! Ex: 1500,00 ou -200,00");
+        return;
+    }
+    saldo = novo;
+    salvarEAtualizar();
+    modalSaldo.classList.remove("visible");
+};
+
+// ---------- FATURAS ----------
+function calcularFaturas() {
+    const [anoSel, mesSel] = mesAtualFiltro.split('-').map(Number);
+    const faturas = {};
+    
+    CARTÕES_CREDITO.forEach(c => faturas[c] = 0);
+    
+    dados.forEach(d => {
+        if (d.ano === anoSel && d.mes === mesSel && CARTÕES_CREDITO.includes(d.cartao)) {
+            faturas[d.cartao] += d.val;
+        }
+    });
+    
+    return faturas;
+}
+
+function renderizarFaturas() {
+    const faturas = calcularFaturas();
+    
+    faturasContainer.innerHTML = Object.entries(faturas).map(([cartao, valor]) => {
+        const nomeCurto = cartao.replace("💳 Cartão ", "");
+        return `
+            <div class="fatura-item">
+                <div class="fatura-header">
+                    <div class="fatura-nome">💳 ${nomeCurto}</div>
+                    <div class="fatura-valor">${formatarMoeda(valor)}</div>
+                </div>
+                <div class="fatura-actions">
+                    <button class="btn-warning" onclick="pagarFatura('${cartao}')">💸 Pagar fatura</button>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function pagarFatura(cartao) {
+    const faturas = calcularFaturas();
+    const valor = faturas[cartao];
+    
+    if (valor <= 0) {
+        alert("Esta fatura já está zerada!");
+        return;
+    }
+    
+    if (!confirm(`Pagar fatura de ${cartao.replace("💳 Cartão ", "")} no valor de ${formatarMoeda(valor)}?\n\nO saldo disponível será reduzido em ${formatarMoeda(valor)}.`)) return;
+    
+    saldo -= valor;
+    
+    // Remove os gastos do cartão no período atual (para zerar a fatura)
+    const [anoSel, mesSel] = mesAtualFiltro.split('-').map(Number);
+    dados = dados.filter(d => !(d.ano === anoSel && d.mes === mesSel && d.cartao === cartao));
+    
+    salvarEAtualizar();
+    alert("✅ Fatura paga! Saldo atualizado.");
+}
+
+// ---------- ADICIONAR/EDITAR GASTO ----------
 function adicionarOuEditar() {
     let desc = descEl.value.trim();
     let categoria = catEl.value;
     let cartao = cartaoEl.value;
     let val = converterValorParaNumero(valEl.value);
 
-    if (!desc) {
-        alert("Digite uma descrição!");
-        return;
-    }
-    if (val === null || val <= 0) {
-        alert("Digite um valor válido (maior que zero)! Use ponto ou vírgula. Ex: 19,90 ou 19.90");
-        return;
-    }
+    if (!desc) { alert("Digite uma descrição!"); return; }
+    if (val === null || val <= 0) { alert("Digite um valor válido (maior que zero)!"); return; }
 
-    if (!categoria || categoria === "") {
-        categoria = detectarCategoria(desc);
-    }
+    if (!categoria || categoria === "") categoria = detectarCategoria(desc);
 
     let dia, mes, ano;
-    const usarDataAuto = autoDataToggle.checked;
-    
-    if (usarDataAuto) {
-        const dataAtual = getDataAtual();
-        dia = dataAtual.dia;
-        mes = dataAtual.mes;
-        ano = dataAtual.ano;
+    if (autoDataToggle.checked) {
+        const d = getDataAtual();
+        dia = d.dia; mes = d.mes; ano = d.ano;
     } else {
-        const dataManual = getDataManual();
-        if (!dataManual) {
-            alert("Por favor, selecione uma data!");
-            return;
-        }
-        dia = dataManual.dia;
-        mes = dataManual.mes;
-        ano = dataManual.ano;
+        const d = getDataManual();
+        if (!d) { alert("Selecione uma data!"); return; }
+        dia = d.dia; mes = d.mes; ano = d.ano;
     }
 
     if (editId !== null) {
@@ -648,16 +713,7 @@ function adicionarOuEditar() {
         }
         cancelarEdicao();
     } else {
-        dados.push({
-            id: gerarId(),
-            desc,
-            categoria,
-            cartao,
-            val,
-            dia,
-            mes,
-            ano
-        });
+        dados.push({ id: gerarId(), desc, categoria, cartao, val, dia, mes, ano });
     }
 
     descEl.value = "";
@@ -676,7 +732,6 @@ function editarGasto(id) {
     valEl.value = item.val.toFixed(2).replace('.', ',');
 
     const dataItem = `${item.ano}-${String(item.mes).padStart(2, '0')}-${String(item.dia).padStart(2, '0')}`;
-    
     const hoje = getDataAtual();
     const isHoje = (item.dia === hoje.dia && item.mes === hoje.mes && item.ano === hoje.ano);
     
@@ -692,7 +747,7 @@ function editarGasto(id) {
     editId = id;
     btnAdd.textContent = "💾 Salvar edição";
     btnCancelar.style.display = "block";
-    document.querySelector(".card:nth-of-type(4)").scrollIntoView({ behavior: "smooth" });
+    document.querySelector(".card:nth-of-type(5)").scrollIntoView({ behavior: "smooth" });
 }
 
 function removerGasto(id) {
@@ -703,6 +758,7 @@ function removerGasto(id) {
     }
 }
 
+// ---------- PDF ----------
 function processarPdf(texto) {
     let linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
     let novosGastos = 0;
@@ -729,13 +785,9 @@ function processarPdf(texto) {
         if (!jaExiste) {
             dados.push({
                 id: gerarId(),
-                desc: desc,
-                categoria: detectarCategoria(desc),
+                desc, categoria: detectarCategoria(desc),
                 cartao: detectarCartaoPdf(linha),
-                val: valor,
-                dia: dia,
-                mes: mes,
-                ano: ano
+                val: valor, dia, mes, ano
             });
             novosGastos++;
         }
@@ -768,6 +820,7 @@ async function importarPdf(file) {
     reader.readAsArrayBuffer(file);
 }
 
+// ---------- ATUALIZAR TELA ----------
 function atualizarTela() {
     const [anoSelecionado, mesSelecionado] = mesAtualFiltro.split('-').map(Number);
     const dadosFiltrados = dados.filter(d => d.ano === anoSelecionado && d.mes === mesSelecionado);
@@ -783,7 +836,7 @@ function atualizarTela() {
                     <div class="item-desc">${item.desc}</div>
                     <div class="item-meta">${item.dia}/${item.mes}/${item.ano} • ${item.cartao} • ${item.categoria}</div>
                 </div>
-                <div class="item-valor">R$ ${item.val.toFixed(2).replace('.', ',')}</div>
+                <div class="item-valor">${formatarMoeda(item.val)}</div>
                 <div class="item-actions">
                     <button class="btn-warning" onclick="editarGasto('${item.id}')">✏️</button>
                     <button class="btn-danger" onclick="removerGasto('${item.id}')">🗑️</button>
@@ -792,15 +845,13 @@ function atualizarTela() {
         `).join("");
     }
 
-    const total = dadosFiltrados.reduce((s, i) => s + i.val, 0);
-    totalEl.innerHTML = `R$ ${total.toFixed(2).replace('.', ',')}`;
-
     const cartoesMap = {};
     dadosFiltrados.forEach(i => cartoesMap[i.cartao] = (cartoesMap[i.cartao] || 0) + i.val);
     cardsDiv.innerHTML = Object.entries(cartoesMap).length ? 
-        Object.entries(cartoesMap).map(([k, v]) => `<div class="badge-card">${k}: R$ ${v.toFixed(2).replace('.', ',')}</div>`).join("") :
+        Object.entries(cartoesMap).map(([k, v]) => `<div class="badge-card">${k}: ${formatarMoeda(v)}</div>`).join("") :
         '<div class="badge-card">Nenhum gasto no período</div>';
 
+    // Gráfico
     const categoriaMap = {};
     dadosFiltrados.forEach(i => categoriaMap[i.categoria] = (categoriaMap[i.categoria] || 0) + i.val);
 
@@ -817,61 +868,6 @@ function atualizarTela() {
         },
         options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#f1f5f9' } } } }
     });
-}
 
-function exportarDados() {
-    const dataStr = JSON.stringify(dados, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `financeiro_backup_${new Date().toISOString().slice(0,19)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    alert("✅ Backup exportado!");
-}
-
-function limparTodosDados() {
-    if (confirm("⚠️ ATENÇÃO: Isso vai apagar TODOS os seus gastos. Tem certeza?")) {
-        dados = [];
-        cancelarEdicao();
-        salvarEAtualizar();
-        alert("Todos os dados foram removidos.");
-    }
-}
-
-function toggleDataAuto() {
-    if (autoDataToggle.checked) {
-        dataManualDiv.classList.remove("visible");
-        dataManualInput.value = "";
-    } else {
-        dataManualDiv.classList.add("visible");
-        const hoje = new Date();
-        const dataHoje = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-        dataManualInput.value = dataHoje;
-    }
-}
-
-function init() {
-    const hoje = new Date();
-    mesAtualFiltro = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-    mesSeletor.value = mesAtualFiltro;
-
-    btnAdd.onclick = adicionarOuEditar;
-    btnCancelar.onclick = cancelarEdicao;
-    btnFiltrar.onclick = () => { mesAtualFiltro = mesSeletor.value; atualizarTela(); };
-    btnExportar.onclick = exportarDados;
-    btnLimparTudo.onclick = limparTodosDados;
-    pdfInput.onchange = (e) => { if (e.target.files.length) importarPdf(e.target.files[0]); pdfInput.value = ""; };
-    
-    autoDataToggle.onchange = toggleDataAuto;
-    
-    dataManualInput.value = "";
-
-    atualizarTela();
-}
-
-init();
-</script>
-</body>
-</html>
+    // Atualiza saldo e faturas
+    atualizarSaldoVisual();
