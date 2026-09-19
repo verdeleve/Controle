@@ -5,30 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, user-scalable=yes">
 <title>App Financeiro PRO</title>
 
-<!-- ============================================= -->
-<!-- CONFIGURAÇÕES PARA FUNCIONAR COMO APP NO CELULAR -->
-<!-- ============================================= -->
-
 <link rel="manifest" href="site.webmanifest">
-
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanças">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f172a">
 
-<!-- ============================================= -->
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 html, body { width: 100%; overflow-x: hidden; }
 
 body {
@@ -68,7 +59,6 @@ h2, h3 {
     width: 100%;
 }
 
-/* SALDO */
 .card-saldo {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border: 1px solid #334155;
@@ -98,7 +88,6 @@ h2, h3 {
     border-radius: 12px;
 }
 
-/* FATURAS */
 .fatura-item {
     background: #0f172a;
     border-radius: 14px;
@@ -132,11 +121,7 @@ h2, h3 {
     word-break: break-word;
 }
 
-.fatura-actions {
-    display: flex;
-    gap: 8px;
-}
-
+.fatura-actions { display: flex; gap: 8px; }
 .fatura-actions button {
     width: auto;
     padding: 8px 14px;
@@ -145,7 +130,6 @@ h2, h3 {
     flex: 1;
 }
 
-/* FORM E OUTROS */
 .form-group { margin-bottom: 12px; width: 100%; }
 
 label {
@@ -276,7 +260,6 @@ input:checked + .slider:before { transform: translateX(24px); }
 .item-desc { font-weight: bold; font-size: 1rem; word-break: break-word; }
 .item-meta { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
 .item-valor { font-weight: bold; font-size: 1.1rem; color: #22c55e; }
-
 .item-actions { display: flex; gap: 8px; }
 .item-actions button { width: auto; padding: 8px 14px; margin: 0; font-size: 0.85rem; }
 
@@ -298,7 +281,6 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
 ::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
 ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
 
-/* MODAL SALDO */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -356,20 +338,17 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
 <div class="container">
     <h1>💰 App Financeiro</h1>
 
-    <!-- SALDO DISPONÍVEL -->
     <div class="card card-saldo">
         <button class="btn-editar-saldo" id="btnEditarSaldo">✏️ Editar</button>
         <h2>💰 Saldo disponível</h2>
         <div class="saldo-valor positivo" id="saldoValor">R$ 0,00</div>
     </div>
 
-    <!-- FATURAS DOS CARTÕES -->
     <div class="card">
         <h3>💳 Faturas dos cartões</h3>
         <div id="faturasContainer"></div>
     </div>
 
-    <!-- PERÍODO -->
     <div class="card">
         <h3>📅 Período</h3>
         <div class="filtro-row">
@@ -381,13 +360,11 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
         </div>
     </div>
 
-    <!-- POR FORMA DE PAGAMENTO -->
     <div class="card">
         <h3>💳 Por forma de pagamento</h3>
         <div id="cards" class="grid-cards"></div>
     </div>
 
-    <!-- ADICIONAR GASTO -->
     <div class="card">
         <h3>➕ Adicionar gasto</h3>
         
@@ -424,8 +401,9 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
         </div>
 
         <div class="form-group">
-            <label>Valor (R$)</label>
-            <input id="val" type="text" placeholder="0,00" autocomplete="off">
+            <label>Valor (R$) — digite só números</label>
+            <input id="val" type="text" inputmode="numeric" placeholder="0,00" autocomplete="off">
+            <small style="color:#94a3b8; display:block; margin-top:4px; font-size:0.75rem;">Ex: digite 1990 para R$ 19,90</small>
         </div>
 
         <div class="toggle-container">
@@ -449,20 +427,17 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
         </div>
     </div>
 
-    <!-- IMPORTAR PDF -->
     <div class="card">
         <h3>📂 Importar fatura (PDF)</h3>
         <input type="file" id="pdfInput" accept=".pdf">
-        <small style="color:#94a3b8; display:block; margin-top:8px;">📌 Suporte para faturas Nubank e Ourocard</small>
+        <small style="color:#94a3b8; display:block; margin-top:8px;">📌 Suporte para faturas Nubank, Ourocard e Mercado Pago</small>
     </div>
 
-    <!-- GRÁFICO -->
     <div class="card">
         <h3>📊 Gastos por categoria</h3>
         <canvas id="grafico"></canvas>
     </div>
 
-    <!-- LISTA -->
     <div class="card">
         <h3>📋 Lista de gastos</h3>
         <div id="lista" class="lista-gastos"></div>
@@ -475,13 +450,13 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
     </div>
 </div>
 
-<!-- MODAL EDITAR SALDO -->
 <div class="modal-overlay" id="modalSaldo">
     <div class="modal">
         <h3>💰 Editar saldo disponível</h3>
         <div class="form-group">
             <label>Valor (use - para negativo)</label>
             <input id="inputSaldo" type="text" placeholder="Ex: 1500,00 ou -200,00" autocomplete="off">
+            <small style="color:#94a3b8; display:block; margin-top:4px; font-size:0.75rem;">Use vírgula para centavos. Ex: 1500,50</small>
         </div>
         <div class="button-group">
             <button id="btnSalvarSaldo">💾 Salvar</button>
@@ -491,15 +466,19 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
 </div>
 
 <script>
-// ---------- VARIÁVEIS ----------
+// ---------- ESTADO ----------
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
 let saldo = parseFloat(localStorage.getItem("saldo")) || 0;
 let editId = null;
 let mesAtualFiltro = new Date().toISOString().slice(0, 7);
 
-const CARTÕES_CREDITO = ["💳 Cartão Nubank", "💳 Cartão Banco do Brasil", "💳 Cartão Mercado Pago"];
+const CARTOES_CREDITO = [
+    "💳 Cartão Nubank",
+    "💳 Cartão Banco do Brasil",
+    "💳 Cartão Mercado Pago"
+];
 
-// DOM
+// ---------- DOM ----------
 const descEl = document.getElementById("desc");
 const catEl = document.getElementById("categoria");
 const cartaoEl = document.getElementById("cartao");
@@ -521,7 +500,6 @@ const autoDataToggle = document.getElementById("autoDataToggle");
 const dataManualDiv = document.getElementById("dataManualDiv");
 const dataManualInput = document.getElementById("dataManual");
 
-// Modal saldo
 const modalSaldo = document.getElementById("modalSaldo");
 const inputSaldo = document.getElementById("inputSaldo");
 const btnEditarSaldo = document.getElementById("btnEditarSaldo");
@@ -531,21 +509,9 @@ const btnCancelarSaldo = document.getElementById("btnCancelarSaldo");
 let chartInstance = null;
 
 // ---------- UTILITÁRIOS ----------
-function converterValorParaNumero(valorStr) {
-    if (!valorStr) return null;
-    valorStr = valorStr.toString().trim();
-    // Guarda o sinal
-    let negativo = valorStr.startsWith("-");
-    valorStr = valorStr.replace(/[^\d,.]/g, "");
-    valorStr = valorStr.replace(/\./g, "").replace(",", ".");
-    let numero = parseFloat(valorStr);
-    if (isNaN(numero)) return null;
-    return negativo ? -numero : numero;
-}
-
 function formatarMoeda(valor) {
-    let sinal = valor < 0 ? "-" : "";
-    let abs = Math.abs(valor);
+    const sinal = valor < 0 ? "-" : "";
+    const abs = Math.abs(valor);
     return `${sinal}R$ ${abs.toFixed(2).replace('.', ',')}`;
 }
 
@@ -567,14 +533,15 @@ function detectarCategoria(desc) {
 }
 
 function detectarCartaoPdf(linha) {
-    if (linha.toLowerCase().includes("mercado pago")) return "💳 Cartão Mercado Pago";
-    if (linha.toLowerCase().includes("ourocard") || linha.toLowerCase().includes("banco do brasil")) return "💳 Cartão Banco do Brasil";
+    const l = linha.toLowerCase();
+    if (l.includes("mercado pago")) return "💳 Cartão Mercado Pago";
+    if (l.includes("ourocard") || l.includes("banco do brasil") || l.includes("bb ")) return "💳 Cartão Banco do Brasil";
     return "💳 Cartão Nubank";
 }
 
 function getDataAtual() {
-    const hoje = new Date();
-    return { dia: hoje.getDate(), mes: hoje.getMonth() + 1, ano: hoje.getFullYear() };
+    const h = new Date();
+    return { dia: h.getDate(), mes: h.getMonth() + 1, ano: h.getFullYear() };
 }
 
 function getDataManual() {
@@ -589,18 +556,27 @@ function salvarEAtualizar() {
     atualizarTela();
 }
 
-function cancelarEdicao() {
-    editId = null;
-    btnAdd.textContent = "➕ Adicionar";
-    btnCancelar.style.display = "none";
-    descEl.value = "";
-    catEl.value = "";
-    cartaoEl.value = "💳 Cartão Nubank";
-    valEl.value = "";
-    autoDataToggle.checked = true;
-    dataManualDiv.classList.remove("visible");
-    dataManualInput.value = "";
-}
+// ---------- MÁSCARA DE VALOR (vírgula automática) ----------
+valEl.addEventListener("input", function () {
+    // Remove tudo que não é dígito
+    let apenasDigitos = this.value.replace(/\D/g, "");
+    
+    if (apenasDigitos === "") {
+        this.value = "";
+        return;
+    }
+    
+    // Limita para evitar números gigantes (máx 10 dígitos = até 99.999.999,99)
+    if (apenasDigitos.length > 10) {
+        apenasDigitos = apenasDigitos.slice(0, 10);
+    }
+    
+    // Converte para número e divide por 100
+    const numero = parseInt(apenasDigitos, 10) / 100;
+    
+    // Formata com vírgula
+    this.value = numero.toFixed(2).replace('.', ',');
+});
 
 // ---------- SALDO ----------
 function atualizarSaldoVisual() {
@@ -608,35 +584,43 @@ function atualizarSaldoVisual() {
     saldoValorEl.className = "saldo-valor " + (saldo >= 0 ? "positivo" : "negativo");
 }
 
-btnEditarSaldo.onclick = () => {
-    inputSaldo.value = saldo.toString().replace(".", ",");
+btnEditarSaldo.addEventListener("click", () => {
+    inputSaldo.value = saldo.toFixed(2).replace('.', ',');
     modalSaldo.classList.add("visible");
-};
+});
 
-btnCancelarSaldo.onclick = () => {
+btnCancelarSaldo.addEventListener("click", () => {
     modalSaldo.classList.remove("visible");
-};
+});
 
-btnSalvarSaldo.onclick = () => {
-    const novo = converterValorParaNumero(inputSaldo.value);
-    if (novo === null) {
-        alert("Digite um valor válido! Ex: 1500,00 ou -200,00");
+btnSalvarSaldo.addEventListener("click", () => {
+    let texto = inputSaldo.value.trim();
+    if (!texto) { alert("Digite um valor!"); return; }
+    
+    const negativo = texto.startsWith("-");
+    texto = texto.replace("-", "").replace(/[^\d,.]/g, "");
+    // Troca ponto por nada (milhar) e vírgula por ponto
+    texto = texto.replace(/\./g, "").replace(",", ".");
+    
+    let numero = parseFloat(texto);
+    if (isNaN(numero)) {
+        alert("Valor inválido! Ex: 1500,50 ou -200,00");
         return;
     }
-    saldo = novo;
+    
+    saldo = negativo ? -numero : numero;
     salvarEAtualizar();
     modalSaldo.classList.remove("visible");
-};
+});
 
 // ---------- FATURAS ----------
 function calcularFaturas() {
     const [anoSel, mesSel] = mesAtualFiltro.split('-').map(Number);
     const faturas = {};
-    
-    CARTÕES_CREDITO.forEach(c => faturas[c] = 0);
+    CARTOES_CREDITO.forEach(c => faturas[c] = 0);
     
     dados.forEach(d => {
-        if (d.ano === anoSel && d.mes === mesSel && CARTÕES_CREDITO.includes(d.cartao)) {
+        if (d.ano === anoSel && d.mes === mesSel && CARTOES_CREDITO.includes(d.cartao)) {
             faturas[d.cartao] += d.val;
         }
     });
@@ -672,11 +656,10 @@ function pagarFatura(cartao) {
         return;
     }
     
-    if (!confirm(`Pagar fatura de ${cartao.replace("💳 Cartão ", "")} no valor de ${formatarMoeda(valor)}?\n\nO saldo disponível será reduzido em ${formatarMoeda(valor)}.`)) return;
+    if (!confirm(`Pagar fatura de ${cartao.replace("💳 Cartão ", "")} no valor de ${formatarMoeda(valor)}?\n\nO saldo disponível será reduzido e os gastos desta fatura serão removidos.`)) return;
     
     saldo -= valor;
     
-    // Remove os gastos do cartão no período atual (para zerar a fatura)
     const [anoSel, mesSel] = mesAtualFiltro.split('-').map(Number);
     dados = dados.filter(d => !(d.ano === anoSel && d.mes === mesSel && d.cartao === cartao));
     
@@ -684,17 +667,17 @@ function pagarFatura(cartao) {
     alert("✅ Fatura paga! Saldo atualizado.");
 }
 
-// ---------- ADICIONAR/EDITAR GASTO ----------
+// ---------- ADICIONAR / EDITAR ----------
 function adicionarOuEditar() {
-    let desc = descEl.value.trim();
+    const desc = descEl.value.trim();
     let categoria = catEl.value;
-    let cartao = cartaoEl.value;
-    let val = converterValorParaNumero(valEl.value);
+    const cartao = cartaoEl.value;
+    const val = parseFloat(valEl.value.replace(',', '.'));
 
     if (!desc) { alert("Digite uma descrição!"); return; }
-    if (val === null || val <= 0) { alert("Digite um valor válido (maior que zero)!"); return; }
+    if (isNaN(val) || val <= 0) { alert("Digite um valor válido!"); return; }
 
-    if (!categoria || categoria === "") categoria = detectarCategoria(desc);
+    if (!categoria) categoria = detectarCategoria(desc);
 
     let dia, mes, ano;
     if (autoDataToggle.checked) {
@@ -729,6 +712,7 @@ function editarGasto(id) {
     descEl.value = item.desc;
     catEl.value = item.categoria;
     cartaoEl.value = item.cartao;
+    // Preenche no formato da máscara (só dígitos)
     valEl.value = item.val.toFixed(2).replace('.', ',');
 
     const dataItem = `${item.ano}-${String(item.mes).padStart(2, '0')}-${String(item.dia).padStart(2, '0')}`;
@@ -758,26 +742,40 @@ function removerGasto(id) {
     }
 }
 
+function cancelarEdicao() {
+    editId = null;
+    btnAdd.textContent = "➕ Adicionar";
+    btnCancelar.style.display = "none";
+    descEl.value = "";
+    catEl.value = "";
+    cartaoEl.value = "💳 Cartão Nubank";
+    valEl.value = "";
+    autoDataToggle.checked = true;
+    dataManualDiv.classList.remove("visible");
+    dataManualInput.value = "";
+}
+
 // ---------- PDF ----------
 function processarPdf(texto) {
-    let linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
+    const linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
     let novosGastos = 0;
 
     linhas.forEach(linha => {
-        let data = linha.match(/(\d{2})\/(\d{2})/);
-        let nubank = linha.match(/(\d{1,2}) [A-Z]{3}/);
-        let valorMatch = linha.match(/R\$ ?([\d.,]+)/);
+        const data = linha.match(/(\d{2})\/(\d{2})/);
+        const nubank = linha.match(/(\d{1,2}) [A-Z]{3}/);
+        const valorMatch = linha.match(/R\$ ?([\d.,]+)/);
         
         if (!valorMatch) return;
 
-        let valorStr = valorMatch[1].replace(/\./g, '').replace(',', '.');
-        let valor = parseFloat(valorStr);
+        const valorStr = valorMatch[1].replace(/\./g, '').replace(',', '.');
+        const valor = parseFloat(valorStr);
         if (isNaN(valor)) return;
 
         let desc = linha.replace(/R\$.*$/, "").replace(/- Parcela.*$/, "").replace(/.*\d{4}/, "").trim();
         if (desc.length < 2) desc = "Gasto identificado";
 
-        let dia = 1, mes = new Date().getMonth() + 1, ano = new Date().getFullYear();
+        let dia = 1, mes = new Date().getMonth() + 1;
+        const ano = new Date().getFullYear();
         if (data) { dia = parseInt(data[1]); mes = parseInt(data[2]); }
         if (nubank) dia = parseInt(nubank[1]);
 
@@ -785,7 +783,8 @@ function processarPdf(texto) {
         if (!jaExiste) {
             dados.push({
                 id: gerarId(),
-                desc, categoria: detectarCategoria(desc),
+                desc,
+                categoria: detectarCategoria(desc),
                 cartao: detectarCartaoPdf(linha),
                 val: valor, dia, mes, ano
             });
@@ -845,29 +844,6 @@ function atualizarTela() {
         `).join("");
     }
 
+    // Por forma de pagamento
     const cartoesMap = {};
-    dadosFiltrados.forEach(i => cartoesMap[i.cartao] = (cartoesMap[i.cartao] || 0) + i.val);
-    cardsDiv.innerHTML = Object.entries(cartoesMap).length ? 
-        Object.entries(cartoesMap).map(([k, v]) => `<div class="badge-card">${k}: ${formatarMoeda(v)}</div>`).join("") :
-        '<div class="badge-card">Nenhum gasto no período</div>';
-
-    // Gráfico
-    const categoriaMap = {};
-    dadosFiltrados.forEach(i => categoriaMap[i.categoria] = (categoriaMap[i.categoria] || 0) + i.val);
-
-    if (chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(graficoCanvas, {
-        type: 'pie',
-        data: {
-            labels: Object.keys(categoriaMap).length ? Object.keys(categoriaMap) : ['Sem dados'],
-            datasets: [{
-                data: Object.keys(categoriaMap).length ? Object.values(categoriaMap) : [1],
-                backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec489a', '#14b8a6', '#f97316', '#64748b', '#a855f7'],
-                borderWidth: 0
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#f1f5f9' } } } }
-    });
-
-    // Atualiza saldo e faturas
-    atualizarSaldoVisual();
+    dadosFiltrados.forEach(i => cartoesMap[i.cartao] = (cartoesMap[i.c
