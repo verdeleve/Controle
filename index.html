@@ -797,7 +797,7 @@ function pararScanner() {
     }
 }
 
-btnEscanear.addEventListener("click", () => {
+function iniciarScanner() {
     if (scannerAtivo) return;
     
     scannerContainer.style.display = "block";
@@ -837,16 +837,17 @@ btnEscanear.addEventListener("click", () => {
         
         pararScanner();
         
-        const preencher = confirm(`Código lido: ${codigo}\n\nDeseja preencher a descrição com este código?`);
-        if (preencher) {
-            descEl.value = "Produto " + codigo;
-            valEl.focus();
-        }
+        // Preenche a descrição com o código e foca no valor
+        descEl.value = "Produto " + codigo;
+        valEl.focus();
+        
+        alert("Código lido: " + codigo + "\n\nAgora digite o valor da etiqueta.");
     });
-});
+}
 
+// Liga os botões UMA ÚNICA VEZ
+btnEscanear.addEventListener("click", iniciarScanner);
 btnPararScan.addEventListener("click", pararScanner);
-
 window.addEventListener("beforeunload", pararScanner);// ---------- PDF ----------
 function processarPdf(texto) {
     const linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
