@@ -784,7 +784,7 @@ function cancelarEdicao() {
     dataManualInput.value = "";
 }
 
-// ---------- LEITOR DE CÓDIGO DE BARRAS (QUAGGA2) ----------
+// ---------- LEITOR DE CÓDIGO DE BARRAS (QUAGGA2) + BUSCA API ----------
 function pararScanner() {
     if (scannerAtivo) {
         try {
@@ -794,6 +794,26 @@ function pararScanner() {
         scannerAtivo = false;
         scannerContainer.style.display = "none";
         interactiveDiv.innerHTML = "";
+    }
+}
+
+async function buscarProdutoPorCodigo(codigo) {
+    try {
+        const response = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${codigo}`);
+        const data = await response.json();
+        
+        if (data.code === "OK" && data.items && data.items.length > 0) {
+            const produto = data.items[0];
+            let nome = produto.title || "";
+            if (produto.brand && !nome.toLowerCase().includes(produto.brand.toLowerCase())) {
+                nome += ` - ${produto.brand}`;
+            }
+            return nome.trim() || "Produto " + codigo;
+        }
+        return "Produto " + codigo;
+    } catch (error) {
+        console.error("Erro na busca:", error);
+        return "Produto " + codigo;
     }
 }
 
@@ -828,7 +848,7 @@ function iniciarScanner() {
         Quagga.start();
     });
     
-    Quagga.onDetected(function (result) {
+    Quagga.onDetected(async function (result) {
         if (!scannerAtivo) return;
         const codigo = result.codeResult.code;
         if (!codigo) return;
@@ -837,11 +857,15 @@ function iniciarScanner() {
         
         pararScanner();
         
-        // Preenche a descrição com o código e foca no valor
-        descEl.value = "Produto " + codigo;
-        valEl.focus();
+        descEl.value = "Buscando...";
+        descEl.disabled = true;
         
-        alert("Código lido: " + codigo + "\n\nAgora digite o valor da etiqueta.");
+        const nomeProduto = await buscarProdutoPorCodigo(codigo);
+        
+        descEl.value = nomeProduto;
+        descEl.disabled = false;
+        
+        valEl.focus();
     });
 }
 
