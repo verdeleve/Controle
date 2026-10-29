@@ -847,22 +847,52 @@ async function buscarProdutoPorCodigo(codigo) {
     }
 }
 
-function iniciarScanner() {
+function async function iniciarScanner() {
     if (scannerAtivo) return;
     
     scannerContainer.style.display = "block";
     scannerAtivo = true;
     interactiveDiv.innerHTML = "";
     
+    // Tenta encontrar a câmera traseira pelo deviceId
+    let deviceIdTraseira = null;
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter(d => d.kind === "videoinput");
+        
+        // Procura por labels que indiquem câmera traseira
+        for (const cam of cameras) {
+            const label = cam.label.toLowerCase();
+            if (label.includes("back") || label.includes("traseira") || label.includes("rear") || label.includes("environment")) {
+                deviceIdTraseira = cam.deviceId;
+                break;
+            }
+        }
+        // Se não achou pelo label, pega a última câmera (geralmente a traseira)
+        if (!deviceIdTraseira && cameras.length > 1) {
+            deviceIdTraseira = cameras[cameras.length - 1].deviceId;
+        }
+    } catch (e) {
+        console.warn("Não foi possível listar câmeras:", e);
+    }
+    
+    const constraints = {
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+    };
+    
+    // Se encontrou a traseira, usa o deviceId. Senão, usa facingMode como fallback.
+    if (deviceIdTraseira) {
+        constraints.deviceId = { exact: deviceIdTraseira };
+    } else {
+        constraints.facingMode = { ideal: "environment" };
+    }
+    
     Quagga.init({
         inputStream: {
             type: "LiveStream",
             target: interactiveDiv,
-            constraints: {
-                facingMode: "environment",
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            }
+            constraints: constraints
         },
         decoder: {
             readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader", "upc_e_reader"]
@@ -882,19 +912,13 @@ function iniciarScanner() {
         if (!scannerAtivo) return;
         const codigo = result.codeResult.code;
         if (!codigo) return;
-        
         if (navigator.vibrate) navigator.vibrate(100);
-        
         pararScanner();
-        
         descEl.value = "Buscando...";
         descEl.disabled = true;
-        
         const nomeProduto = await buscarProdutoPorCodigo(codigo);
-        
         descEl.value = nomeProduto;
         descEl.disabled = false;
-        
         valEl.focus();
     });
 }
