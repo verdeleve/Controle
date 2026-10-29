@@ -18,6 +18,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -305,7 +306,7 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
 
 .modal h3 { margin-bottom: 16px; }
 
-#scanner-container {
+#scanner-container, #etiqueta-container {
     display: none;
     margin-bottom: 16px;
     text-align: center;
@@ -326,8 +327,19 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
     object-fit: cover;
 }
 
-#interactive canvas {
-    display: none;
+#interactive canvas { display: none; }
+
+#videoEtiqueta {
+    width: 100%;
+    border-radius: 12px;
+    max-height: 300px;
+    background: #000;
+}
+
+#statusOcr {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-top: 8px;
 }
 
 @media (max-width: 600px) {
@@ -398,11 +410,21 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
             <label>Descrição</label>
             <input id="desc" placeholder="Ex: Ifood, Uber, Posto..." autocomplete="off">
             <button type="button" id="btnEscanear" class="btn-info" style="margin-top: 8px;">📷 Escanear código de barras</button>
+            <button type="button" id="btnEscanearEtiqueta" class="btn-warning" style="margin-top: 8px;">📸 Escanear etiqueta (OCR)</button>
         </div>
 
         <div id="scanner-container">
             <div id="interactive"></div>
             <button type="button" id="btnPararScan" class="btn-danger" style="margin-top: 8px;">✖️ Cancelar leitura</button>
+        </div>
+
+        <div id="etiqueta-container">
+            <video id="videoEtiqueta" autoplay playsinline></video>
+            <div class="button-group" style="margin-top: 8px;">
+                <button type="button" id="btnCapturarEtiqueta" class="btn-info">📷 Tirar foto</button>
+                <button type="button" id="btnPararEtiqueta" class="btn-danger">✖️ Cancelar</button>
+            </div>
+            <p id="statusOcr"></p>
         </div>
 
         <div class="form-group">
@@ -541,8 +563,16 @@ const btnPararScan = document.getElementById("btnPararScan");
 const scannerContainer = document.getElementById("scanner-container");
 const interactiveDiv = document.getElementById("interactive");
 
+const btnEscanearEtiqueta = document.getElementById("btnEscanearEtiqueta");
+const etiquetaContainer = document.getElementById("etiqueta-container");
+const videoEtiqueta = document.getElementById("videoEtiqueta");
+const btnCapturarEtiqueta = document.getElementById("btnCapturarEtiqueta");
+const btnPararEtiqueta = document.getElementById("btnPararEtiqueta");
+const statusOcr = document.getElementById("statusOcr");
+
 let chartInstance = null;
 let scannerAtivo = false;
+let streamEtiqueta = null;
 
 // ---------- UTILITÁRIOS ----------
 function formatarMoeda(valor) {
@@ -869,10 +899,88 @@ function iniciarScanner() {
     });
 }
 
-// Liga os botões UMA ÚNICA VEZ
 btnEscanear.addEventListener("click", iniciarScanner);
 btnPararScan.addEventListener("click", pararScanner);
-window.addEventListener("beforeunload", pararScanner);// ---------- PDF ----------
+window.addEventListener("beforeunload", pararScanner);
+
+// ---------- OCR PARA ETIQUETA DE GÔNDOLA ----------
+async function pararCameraEtiqueta() {
+    if (streamEtiqueta) {
+        streamEtiqueta.getTracks().forEach(track => track.stop());
+        streamEtiqueta = null;
+    }
+    etiquetaContainer.style.display = "none";
+    statusOcr.textContent = "";
+}
+
+btnEscanearEtiqueta.addEventListener("click", async () => {
+    try {
+        streamEtiqueta = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+        });
+        videoEtiqueta.srcObject = streamEtiqueta;
+        etiquetaContainer.style.display = "block";
+    } catch (err) {
+        alert("Erro ao acessar a câmera: " + err.message);
+    }
+});
+
+btnPararEtiqueta.addEventListener("click", pararCameraEtiqueta);
+
+btnCapturarEtiqueta.addEventListener("click", async () => {
+    if (!streamEtiqueta) return;
+
+    statusOcr.textContent = "Processando imagem... (pode levar alguns segundos)";
+
+    const canvas = document.createElement("canvas");
+    canvas.width = videoEtiqueta.videoWidth;
+    canvas.height = videoEtiqueta.videoHeight;
+    canvas.getContext("2d").drawImage(videoEtiqueta, 0, 0);
+
+    canvas.toBlob(async (blob) => {
+        try {
+            const worker = await Tesseract.createWorker("por");
+            const { data: { text } } = await worker.recognize(blob);
+            await worker.terminate();
+
+            console.log("Texto lido:", text);
+            statusOcr.textContent = "Texto extraído. Verifique os campos preenchidos.";
+
+            const precoMatch = text.match(/R?\$?\s*(\d{1,4}[.,]\d{2})/);
+            let precoExtraido = null;
+            if (precoMatch) {
+                precoExtraido = parseFloat(precoMatch[1].replace(",", "."));
+            }
+
+            const linhas = text.split("\n").map(l => l.trim()).filter(l => l.length > 3);
+            let nomeExtraido = linhas.length > 0 ? linhas[0] : null;
+
+            if (nomeExtraido) {
+                descEl.value = nomeExtraido.substring(0, 100);
+            } else {
+                descEl.value = "Produto (OCR)";
+            }
+
+            if (precoExtraido) {
+                const valorCentavos = Math.round(precoExtraido * 100).toString();
+                valEl.value = valorCentavos;
+                valEl.dispatchEvent(new Event('input'));
+            } else {
+                valEl.focus();
+            }
+
+            pararCameraEtiqueta();
+
+            alert("OCR concluído!\n\nConfira os campos preenchidos e corrija se necessário antes de adicionar.");
+
+        } catch (err) {
+            console.error(err);
+            statusOcr.textContent = "Erro no OCR. Tente novamente com melhor iluminação.";
+            alert("Erro ao processar OCR: " + err.message);
+        }
+    }, "image/jpeg", 0.9);
+});
+    // ---------- PDF ----------
 function processarPdf(texto) {
     const linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
     let novosGastos = 0;
