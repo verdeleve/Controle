@@ -17,6 +17,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
 
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -304,6 +305,31 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
 
 .modal h3 { margin-bottom: 16px; }
 
+#scanner-container {
+    display: none;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+#interactive {
+    width: 100%;
+    height: 250px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+#interactive video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+#interactive canvas {
+    display: none;
+}
+
 @media (max-width: 600px) {
     body { padding: 12px; }
     .card { padding: 16px; }
@@ -371,6 +397,12 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
         <div class="form-group">
             <label>Descrição</label>
             <input id="desc" placeholder="Ex: Ifood, Uber, Posto..." autocomplete="off">
+            <button type="button" id="btnEscanear" class="btn-info" style="margin-top: 8px;">📷 Escanear código de barras</button>
+        </div>
+
+        <div id="scanner-container">
+            <div id="interactive"></div>
+            <button type="button" id="btnPararScan" class="btn-danger" style="margin-top: 8px;">✖️ Cancelar leitura</button>
         </div>
 
         <div class="form-group">
@@ -463,8 +495,7 @@ canvas { max-height: 280px; width: 100% !important; margin-top: 10px; }
             <button id="btnCancelarSaldo" class="btn-secondary">✖️ Cancelar</button>
         </div>
     </div>
-</div>
-<script>
+</div><script>
 // ---------- ESTADO ----------
 let dados = JSON.parse(localStorage.getItem("dados")) || [];
 let saldo = parseFloat(localStorage.getItem("saldo")) || 0;
@@ -505,7 +536,13 @@ const btnEditarSaldo = document.getElementById("btnEditarSaldo");
 const btnSalvarSaldo = document.getElementById("btnSalvarSaldo");
 const btnCancelarSaldo = document.getElementById("btnCancelarSaldo");
 
+const btnEscanear = document.getElementById("btnEscanear");
+const btnPararScan = document.getElementById("btnPararScan");
+const scannerContainer = document.getElementById("scanner-container");
+const interactiveDiv = document.getElementById("interactive");
+
 let chartInstance = null;
+let scannerAtivo = false;
 
 // ---------- UTILITÁRIOS ----------
 function formatarMoeda(valor) {
@@ -746,7 +783,71 @@ function cancelarEdicao() {
     dataManualDiv.classList.remove("visible");
     dataManualInput.value = "";
 }
-// ---------- PDF ----------
+
+// ---------- LEITOR DE CÓDIGO DE BARRAS (QUAGGA2) ----------
+function pararScanner() {
+    if (scannerAtivo) {
+        try {
+            Quagga.stop();
+            Quagga.offDetected();
+        } catch (e) { console.log(e); }
+        scannerAtivo = false;
+        scannerContainer.style.display = "none";
+        interactiveDiv.innerHTML = "";
+    }
+}
+
+btnEscanear.addEventListener("click", () => {
+    if (scannerAtivo) return;
+    
+    scannerContainer.style.display = "block";
+    scannerAtivo = true;
+    interactiveDiv.innerHTML = "";
+    
+    Quagga.init({
+        inputStream: {
+            type: "LiveStream",
+            target: interactiveDiv,
+            constraints: {
+                facingMode: "environment",
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        },
+        decoder: {
+            readers: ["ean_reader", "ean_8_reader", "code_128_reader", "upc_reader", "upc_e_reader"]
+        },
+        locate: true
+    }, function (err) {
+        if (err) {
+            console.error(err);
+            alert("Erro ao acessar a câmera. Verifique se deu permissão.");
+            pararScanner();
+            return;
+        }
+        Quagga.start();
+    });
+    
+    Quagga.onDetected(function (result) {
+        if (!scannerAtivo) return;
+        const codigo = result.codeResult.code;
+        if (!codigo) return;
+        
+        if (navigator.vibrate) navigator.vibrate(100);
+        
+        pararScanner();
+        
+        const preencher = confirm(`Código lido: ${codigo}\n\nDeseja preencher a descrição com este código?`);
+        if (preencher) {
+            descEl.value = "Produto " + codigo;
+            valEl.focus();
+        }
+    });
+});
+
+btnPararScan.addEventListener("click", pararScanner);
+
+window.addEventListener("beforeunload", pararScanner);// ---------- PDF ----------
 function processarPdf(texto) {
     const linhas = texto.split(/(?=\d{2}\/\d{2})|(?=\d{1,2} [A-Z]{3})/);
     let novosGastos = 0;
